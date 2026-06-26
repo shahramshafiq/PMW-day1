@@ -1,112 +1,89 @@
-# I Spent a Day Learning 3D Reconstruction — Here's What Actually Stuck
+# what i learned on day 1 of a 3D reconstruction internship
 
-*Posted as part of my Day 1 work for the PreserveMy.World x TechRealm Internship 2026*
-
----
-
-I'm a CS student at FAST NUCES Islamabad. I build AI agents, write C++ without STL, and once wrote a Mario clone in 7,700 lines of x86 Assembly. But I had never seriously touched 3D reconstruction before this week.
-
-I joined the PreserveMy.World x TechRealm Internship on the AI-Based 3D Reconstruction track. The mission of PreserveMy.World is to document and preserve cultural heritage — mosques, forts, old city streets — by turning phone footage into explorable 3D digital memories. My job, eventually, is to contribute to the AI pipeline that makes that work.
-
-Day 1 task: learn what 3D reconstruction actually is, write some code, and explain it.
+*Day 1 post, PreserveMy.World x TechRealm Internship 2026*
 
 ---
 
-## The core problem
+I'm a CS student at FAST NUCES Islamabad. I've built multi-agent AI pipelines, written C++ without touching STL once, and spent a full semester writing a Mario clone in x86 Assembly (7,700 lines, no regrets). But 3D reconstruction? Never touched it before this week.
 
-A camera takes a 2D photo. You want to know the 3D structure of what was photographed. The problem is that this is fundamentally under-constrained — a flat wall and a curved wall can produce exactly the same photo if you position the camera just right.
+I joined PreserveMy.World x TechRealm on the AI-Based 3D Reconstruction track. PMW builds navigable 3D digital records of heritage sites from phone footage. My track is the AI pipeline that turns raw video into something you can actually walk through on a screen.
 
-The solution is more cameras. Specifically, taking photos of the same object from different angles and combining the information.
-
-This is called **Structure from Motion (SfM)**, and it's the backbone of most photogrammetry pipelines.
+Day 1: figure out what photogrammetry actually is, write real code, don't just paraphrase a Wikipedia article.
 
 ---
 
-## How photogrammetry actually works (simplified)
+## the core problem
 
-Here's the pipeline from photos to 3D:
+A camera gives you a flat 2D image. You want the 3D shape of whatever's in it. The problem is there's no unique answer to that question. A flat wall and a slightly curved wall can look identical in a photo if the angle is right.
 
-**Step 1 — Feature extraction**
-Run a feature detector (SIFT, ORB) on every image. These find distinctive points — corners, edges, texture patterns — that are likely to appear in other photos of the same scene.
-
-**Step 2 — Feature matching**
-Find which feature points in Image A correspond to the same physical point in Image B. This is the hardest part in practice — false matches ruin everything downstream.
-
-**Step 3 — Camera pose estimation**
-From matched features, compute where each camera was when it took the photo. This uses the Essential Matrix (for calibrated cameras) or Fundamental Matrix (uncalibrated).
-
-**Step 4 — Triangulation**
-With known camera positions, a matched point in two images defines two rays in 3D space. Where those rays intersect (or come closest) is the 3D location of that point. Do this for thousands of matched points and you get a **sparse point cloud**.
-
-**Step 5 — Dense reconstruction (MVS)**
-The sparse point cloud has gaps. Multi-View Stereo fills them in by computing depth for every pixel, not just feature points. Now you have millions of 3D points.
-
-**Step 6 — Mesh / surface reconstruction**
-Connect the points into a continuous surface (Poisson surface reconstruction, Delaunay, etc.). Now you have an actual 3D model you can view in any 3D viewer.
-
-The standard open-source tool for steps 1-5 is **COLMAP**.
+The fix is more photos from different positions. Enough views of the same scene and the geometry across them pins down where things actually are in 3D. This is Structure from Motion (SfM). It's what most photogrammetry pipelines are built on.
 
 ---
 
-## What I coded
+## the pipeline
 
-I couldn't get Open3D working on my machine (GLIBC version mismatch — a known issue on some Anaconda setups). So I implemented the core concepts from scratch with numpy and matplotlib.
+Most tools (COLMAP is the standard open-source one) follow roughly this:
 
-My script (`point_cloud_basics.py`) does this:
+1. Run a feature detector (SIFT, ORB) on every image to find keypoints: corners, edges, distinctive patches.
+2. Match those keypoints across image pairs. Figure out which point in image A is the same physical point as something in image B. This is where the whole thing breaks if it's going to break.
+3. From matched keypoints, estimate where each camera was positioned. This uses the Essential Matrix for calibrated cameras.
+4. Two matched points in two images define two rays in 3D space. Where they intersect is the real-world location of that point. Do this for thousands of pairs and you get a sparse point cloud.
+5. Multi-View Stereo fills in the gaps. Instead of just feature points, it computes depth for every pixel. Now you have millions of points.
+6. Poisson surface reconstruction (or similar) connects the dots into an actual mesh.
 
-1. Generates a synthetic 3D scene — a heritage building corner with a front wall, side wall, and roofline
-2. Projects it to 2D from 4 different "camera" positions (perspective projection)
-3. Simulates reconstruction by adding noise (representing real-world imprecision in feature matching)
-4. Visualizes both the ground truth and the reconstructed point cloud side by side
+---
 
-Here's the projection function:
+## what I built
+
+Open3D didn't install cleanly on my machine. GLIBC version mismatch, which is apparently a known issue on certain Anaconda setups on Windows. Tried the pre-release build. Same error. Spent maybe 40 minutes on this before switching to just implementing the core ideas with numpy and matplotlib.
+
+My script generates a synthetic building corner (front wall, side wall, roofline), projects it from 4 camera positions using perspective projection, adds Gaussian noise to simulate the imprecision you'd get from real feature matching, and plots original vs reconstructed point cloud side by side.
+
+The projection step:
 
 ```python
 def project_to_image(pts_3d, cam_pos, focal=2.0):
     shifted = pts_3d - cam_pos
     depth = shifted[:, 2]
     visible = depth > 0.1
-
     u = focal * shifted[visible, 0] / (depth[visible] + 1e-9)
     v = focal * shifted[visible, 1] / (depth[visible] + 1e-9)
     return u, v, depth[visible], visible
 ```
 
-This is basic perspective projection — divide x and y by depth, scale by focal length. Real cameras are more complicated (lens distortion, sensor size, principal point) but the geometry is the same.
+Basic perspective projection: divide x and y by depth, scale by focal length. Real cameras have lens distortion and principal point offsets on top of this, but the core geometry is the same.
 
-Running it gives two PNGs: the 4 camera views and the 3D reconstruction comparison.
-
-Is it real SfM? No. The "reconstruction" is simulated. But the math — projection, depth, point clouds — is real, and I understand it now in a way I didn't this morning.
+Is it real SfM? No. The "reconstruction" is just noisy copies of points I already knew. But the projection math is real, the depth reasoning is real, and I get what a point cloud actually represents now in a way I didn't this morning.
 
 ---
 
-## NeRF and Gaussian Splatting — what's the difference?
+## NeRF and 3D Gaussian Splatting
 
-Photogrammetry gives you an explicit 3D model (point cloud, mesh). NeRF and Gaussian Splatting are different approaches that have become more popular recently.
+Photogrammetry gives you an explicit model: a point cloud or a mesh. NeRF and 3DGS take a completely different angle.
 
-**NeRF (Neural Radiance Field):** Train a small neural network to represent the scene. You give it (x, y, z, viewing direction) and it outputs (color, density). To render a new view, you shoot rays through the scene and query the network for each point along the ray. It's slow to train (hours) and slow to render without tricks, but the quality is incredible.
+NeRF trains a small neural network on your images. Input is a 3D position plus a viewing direction. Output is color and density at that point. Rendering a new viewpoint means shooting rays through the scene and querying the network along each ray. The results are photorealistic but training takes hours and rendering is slow unless you add a lot of tricks.
 
-**3D Gaussian Splatting:** Represent the scene as millions of tiny 3D Gaussian blobs, each with its own color, opacity, and orientation. During training (which is faster than NeRF), you optimize the positions and properties of these Gaussians to match the input photos. Rendering is very fast — real-time on a decent GPU. This is likely closer to what PreserveMy.World is targeting for the "explorable worlds" side of the product.
-
----
-
-## Why this matters for heritage
-
-Pakistan has hundreds of heritage sites that are either underdocumented, physically deteriorating, or difficult to access. Lahore Fort, Mohenjo-daro, the old city lanes of Walled Lahore. A 3D reconstruction built from a few hours of phone video could preserve a site forever as a navigable digital memory.
-
-That's PreserveMy.World's mission. And it's genuinely interesting to work on.
-
-My contribution right now is learning the pipeline well enough to be useful during Week 3, when our team will actually capture footage and run it through reconstruction tools. I don't want to be the person who just hands off footage without understanding what happens to it.
+3D Gaussian Splatting represents the scene as a huge number of 3D Gaussian blobs, each with its own color, opacity, and shape. You optimize these blobs against your input images. Training is faster than NeRF and rendering is real-time on a decent GPU. This is probably what PMW uses for the "explorable worlds" part, since people actually need to walk through these reconstructions in real time.
 
 ---
 
-## Honest reflection
+## why i'm doing this
 
-Day 1 was heavier on reading than on building. I hit library install issues, had to pivot my code plan, and my "reconstruction" is still a simulation rather than a real SfM output.
+Pakistan has a lot of heritage sites that most people will never visit, some that are actively falling apart, and a few that barely anyone has documented properly. Lahore Fort is famous. The old city lanes of Walled Lahore are not. Mohenjo-daro has been eroding for decades.
 
-But I now have a working mental model: cameras project 3D to 2D, matching features across views lets you triangulate back, NeRF learns it implicitly, Gaussian Splatting approximates it with blobs. Next step is running COLMAP on actual photos and seeing the real pipeline in action.
+PMW's approach is: capture footage with a phone, run it through a reconstruction pipeline, get something navigable and permanent. I want to understand the full pipeline I'm contributing to, not just collect footage and hand it off.
 
 ---
 
-*Shahram Shafiq — FAST NUCES Islamabad — PreserveMy.World x TechRealm Internship, AI Track*
+## where I'm at after day 1
+
+More reading than building. Hit an install wall, pivoted to manual implementation, got visible output out of Python.
+
+What I have now: a working mental model of SfM, a clear picture of where NeRF and 3DGS fit in, and actual runnable code. What I don't have yet: a real reconstruction from real images.
+
+Next up is COLMAP on actual photos. Week 3 is when our team captures real footage of a heritage site and runs it through the pipeline for real.
+
+---
+
+*Shahram Shafiq, FAST NUCES Islamabad*
 *GitHub: [github.com/shahramshafiq](https://github.com/shahramshafiq)*
