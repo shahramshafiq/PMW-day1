@@ -93,4 +93,40 @@ Pakistan has hundreds of heritage sites that are underdocumented. This isn't jus
 
 ---
 
-*Day 1 complete. Day 2 is Python Setup and Git/First PR.*
+*Day 1 complete.*
+
+---
+
+## Day 2: Python Setup, Git & First PR
+
+**AI coding tool used:** Claude Code (claude.ai/code) — used to generate, review, and improve all scripts. Every line was read and understood before committing.
+
+**Environment:** Python 3.11 (Anaconda), Git, VS Code, gh CLI, Claude Code.
+
+### Research folder
+
+New `research/` folder added with:
+
+- [`research/3d_methods_comparison.md`](research/3d_methods_comparison.md) — detailed comparison of 4 methods: COLMAP, NeRF, 3D Gaussian Splatting, Monocular Depth (MiDaS). Covers inputs, outputs, hardware, difficulty, and where each fits the PMW pipeline.
+- [`research/depth_map_demo.py`](research/depth_map_demo.py) — Python script simulating monocular depth estimation. Generates a synthetic depth map of a heritage building (pillars, facade, arched doorway), converts it to a 3D point cloud via back-projection, and saves a 3-panel visualization.
+- [`research/depth_output.png`](research/depth_output.png) — output from the script above.
+
+### Key finding from the comparison
+
+For PMW's "explorable worlds" feature, the full production pipeline is:
+1. Capture footage (phone/drone)
+2. Extract frames, run **COLMAP** to get camera poses + sparse point cloud
+3. Feed into **3D Gaussian Splatting** for real-time navigable output
+4. Optional: run **NeRF** (Nerfstudio) for high-quality archival renders
+
+Monocular depth (MiDaS) is useful when only a single photo of a site exists.
+
+### Tutorials watched
+
+- Computerphile: "How does 3D Scanning Work?" — depth sensors vs photogrammetry
+- Computerphile: "Neural Radiance Fields" — how NeRF works
+- YouTube: "Structure from Motion explained" — feature matching, triangulation
+- Open3D documentation — point cloud processing
+- Nerfstudio docs — NeRF training pipeline overview
+
+*Day 2 complete. PR opened from branch `day2-research`.*
