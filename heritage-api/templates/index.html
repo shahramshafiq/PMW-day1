@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoFrame Heritage API</title>
+    <style>
+        :root {
+            --bg: #060B14;
+            --surface: #0D1825;
+            --border: rgba(212, 168, 67, 0.18);
+            --gold: #D4A843;
+            --terra: #C4622D;
+            --sand: #F5ECD7;
+            --muted: rgba(245, 236, 215, 0.5);
+            --green: #34D399;
+            --red: #F87171;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--sand);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            padding: 0 0 60px;
+        }
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-mark {
+            width: 36px; height: 36px;
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px; color: var(--gold);
+            letter-spacing: 1px;
+        }
+        .logo-text h1 { font-size: 16px; font-weight: 600; color: var(--sand); }
+        .logo-text p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+        .live-badge {
+            display: flex; align-items: center; gap: 7px;
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.25);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 12px;
+            color: var(--green);
+        }
+        .live-dot {
+            width: 7px; height: 7px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        .react-link {
+            background: var(--gold);
+            color: #060B14;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .hero {
+            padding: 40px 40px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .hero h2 { font-size: 28px; font-weight: 700; color: var(--sand); margin-bottom: 8px; }
+        .hero p { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 600px; }
+        .base-url {
+            margin-top: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            color: var(--gold);
+            display: inline-block;
+        }
+        .content { padding: 32px 40px; }
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        .endpoints { display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; }
+        .endpoint {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .method {
+            font-size: 11px; font-weight: 700;
+            padding: 3px 8px; border-radius: 5px;
+            font-family: monospace;
+            min-width: 44px; text-align: center;
+            flex-shrink: 0; margin-top: 2px;
+        }
+        .method.get { background: rgba(96, 165, 250, 0.15); color: #60A5FA; }
+        .method.post { background: rgba(52, 211, 153, 0.15); color: #34D399; }
+        .ep-path {
+            font-family: monospace; font-size: 14px;
+            color: var(--sand); font-weight: 500;
+        }
+        .ep-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+        .ep-try {
+            margin-left: auto; flex-shrink: 0;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--gold);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .ep-try:hover { background: rgba(212,168,67,0.08); }
+        .response-box {
+            background: #010509;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #a8c7fa;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        .response-box.visible { display: block; }
+        .curl-section { margin-bottom: 40px; }
+        .curl-block {
+            background: #010509;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .curl-label {
+            font-size: 11px; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .curl-label::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+        .curl-cmd {
+            font-family: monospace; font-size: 13px;
+            color: #34D399; margin-bottom: 6px;
+        }
+        .curl-desc { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+        #live-result {
+            background: #010509;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #a8c7fa;
+            white-space: pre-wrap;
+            min-height: 80px;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .footer a { color: var(--gold); text-decoration: none; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo">
+        <div class="logo-mark">EF</div>
+        <div class="logo-text">
+            <h1>EchoFrame Heritage API</h1>
+            <p>PreserveMy.World x TechRealm 2026</p>
+        </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <div class="live-badge"><div class="live-dot"></div>Flask Server Running</div>
+        <a href="/react" class="react-link">React Dashboard →</a>
+    </div>
+</header>
+
+<div class="hero">
+    <h2>AI-Based 3D Heritage Reconstruction API</h2>
+    <p>REST API for accessing Pakistani heritage site data, point cloud exports, and 3D reconstruction pipeline simulation. Testable via curl, Postman, or direct IP hit.</p>
+    <div class="base-url">Base URL: http://localhost:5000</div>
+</div>
+
+<div class="content">
+    <p class="section-title">API Endpoints</p>
+    <div class="endpoints">
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <div style="flex:1;">
+                <div class="ep-path">/api/health</div>
+                <div class="ep-desc">Service health check. Returns version, team, and site count.</div>
+                <div class="response-box" id="r-health"></div>
+            </div>
+            <button class="ep-try" onclick="tryEndpoint('health', '/api/health')">Try it</button>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <div style="flex:1;">
+                <div class="ep-path">/api/sites</div>
+                <div class="ep-desc">List all heritage sites with status, method, and preservation score.</div>
+                <div class="response-box" id="r-sites"></div>
+            </div>
+            <button class="ep-try" onclick="tryEndpoint('sites', '/api/sites')">Try it</button>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <div style="flex:1;">
+                <div class="ep-path">/api/sites/:id</div>
+                <div class="ep-desc">Full details for a specific site. IDs: lahore-fort, rohtas-fort, mohenjo-daro, badshahi-mosque.</div>
+                <div class="response-box" id="r-site-detail"></div>
+            </div>
+            <button class="ep-try" onclick="tryEndpoint('site-detail', '/api/sites/lahore-fort')">Try it</button>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <div style="flex:1;">
+                <div class="ep-path">/api/sites/:id/pointcloud</div>
+                <div class="ep-desc">Sample 3D point cloud data (XYZ coordinates) for a reconstructed site.</div>
+                <div class="response-box" id="r-pointcloud"></div>
+            </div>
+            <button class="ep-try" onclick="tryEndpoint('pointcloud', '/api/sites/lahore-fort/pointcloud')">Try it</button>
+        </div>
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <div style="flex:1;">
+                <div class="ep-path">/api/reconstruct</div>
+                <div class="ep-desc">Queue a reconstruction job. Body: <code style="color:var(--gold)">{"site_id":"lahore-fort","method":"colmap","num_photos":120}</code></div>
+                <div class="response-box" id="r-reconstruct"></div>
+            </div>
+            <button class="ep-try" onclick="tryPost()">Try it</button>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <div style="flex:1;">
+                <div class="ep-path">/api/methods</div>
+                <div class="ep-desc">List all 3D reconstruction methods: COLMAP, NeRF, 3DGS, MiDaS.</div>
+                <div class="response-box" id="r-methods"></div>
+            </div>
+            <button class="ep-try" onclick="tryEndpoint('methods', '/api/methods')">Try it</button>
+        </div>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <div style="flex:1;">
+                <div class="ep-path">/api/stats</div>
+                <div class="ep-desc">Global statistics: total sites, photos processed, 3D point count, risk summary.</div>
+                <div class="response-box" id="r-stats"></div>
+            </div>
+            <button class="ep-try" onclick="tryEndpoint('stats', '/api/stats')">Try it</button>
+        </div>
+    </div>
+
+    <p class="section-title">curl Commands</p>
+    <div class="curl-section">
+        <div class="curl-block">
+            <div class="curl-label">Health Check</div>
+            <div class="curl-cmd">curl http://localhost:5000/api/health</div>
+            <div class="curl-desc">Direct IP hit: curl http://192.168.x.x:5000/api/health</div>
+
+            <div class="curl-label">List Sites</div>
+            <div class="curl-cmd">curl http://localhost:5000/api/sites</div>
+            <div class="curl-desc">Returns all 4 heritage sites with status and preservation scores.</div>
+
+            <div class="curl-label">Site Details</div>
+            <div class="curl-cmd">curl http://localhost:5000/api/sites/lahore-fort</div>
+            <div class="curl-desc">Full detail including era, photos, point cloud size, coverage %.</div>
+
+            <div class="curl-label">Point Cloud Data</div>
+            <div class="curl-cmd">curl http://localhost:5000/api/sites/lahore-fort/pointcloud</div>
+            <div class="curl-desc">Returns sampled XYZ coordinates from the 3D reconstruction.</div>
+
+            <div class="curl-label">POST: Queue Reconstruction</div>
+            <div class="curl-cmd">curl -X POST http://localhost:5000/api/reconstruct \
+  -H "Content-Type: application/json" \
+  -d '{"site_id":"mohenjo-daro","method":"midas","num_photos":95}'</div>
+            <div class="curl-desc">Queues a reconstruction pipeline job, returns job_id and estimated hours.</div>
+
+            <div class="curl-label">Postman Setup</div>
+            <div class="curl-cmd">Import URL: http://localhost:5000</div>
+            <div class="curl-desc">No auth needed. All GET endpoints respond directly. POST /api/reconstruct requires JSON body with Content-Type header.</div>
+        </div>
+    </div>
+
+    <p class="section-title">Live API Response</p>
+    <div id="live-result" style="color:var(--muted);">Click "Try it" on any endpoint above to see a live response here.</div>
+</div>
+
+<div class="footer">
+    <p>EchoFrame Labs · AI-Based 3D Scene Reconstruction · <a href="/react">Open React Dashboard</a></p>
+</div>
+
+<script>
+async function tryEndpoint(key, url) {
+    const box = document.getElementById('r-' + key);
+    const liveBox = document.getElementById('live-result');
+    box.textContent = 'Loading...';
+    box.classList.add('visible');
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const text = JSON.stringify(data, null, 2);
+        box.textContent = text;
+        liveBox.textContent = text;
+        liveBox.style.color = '#a8c7fa';
+    } catch(e) {
+        box.textContent = 'Error: ' + e.message;
+        liveBox.textContent = 'Error: ' + e.message;
+    }
+}
+
+async function tryPost() {
+    const box = document.getElementById('r-reconstruct');
+    const liveBox = document.getElementById('live-result');
+    box.textContent = 'Sending POST...';
+    box.classList.add('visible');
+    try {
+        const res = await fetch('/api/reconstruct', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({site_id: 'lahore-fort', method: 'colmap', num_photos: 120})
+        });
+        const data = await res.json();
+        const text = JSON.stringify(data, null, 2);
+        box.textContent = text;
+        liveBox.textContent = text;
+        liveBox.style.color = '#a8c7fa';
+    } catch(e) {
+        box.textContent = 'Error: ' + e.message;
+    }
+}
+
+fetch('/api/health').then(r => r.json()).then(d => {
+    document.querySelector('.live-badge').innerHTML =
+        '<div class="live-dot"></div>' + d.service + ' v' + d.version;
+});
+</script>
+</body>
+</html>

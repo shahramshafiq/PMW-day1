@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EchoFrame Labs · Heritage API Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root {
+  --bg: #060B14;
+  --surface: #0D1825;
+  --surface2: #111f30;
+  --border: rgba(212, 168, 67, 0.12);
+  --border2: rgba(212, 168, 67, 0.22);
+  --gold: #D4A843;
+  --gold-dim: rgba(212, 168, 67, 0.15);
+  --terra: #C4622D;
+  --terra-dim: rgba(196, 98, 45, 0.15);
+  --sand: #F5ECD7;
+  --muted: rgba(245, 236, 215, 0.45);
+  --muted2: rgba(245, 236, 215, 0.25);
+  --green: #34D399;
+  --red: #F87171;
+  --blue: #60A5FA;
+  --orange: #FB923C;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--sand);
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(6, 11, 20, 0.92);
+  backdrop-filter: blur(12px);
+}
+.logo-row { display: flex; align-items: center; gap: 12px; }
+.logo-box {
+  width: 34px; height: 34px;
+  border: 1.5px solid var(--gold);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 11px; letter-spacing: 1px; color: var(--gold);
+}
+.logo-name { font-size: 15px; font-weight: 600; }
+.logo-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 500;
+}
+.badge-live { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.22); color: var(--green); }
+.badge-ver { background: rgba(212,168,67,0.08); border: 1px solid var(--border); color: var(--gold); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.dot-pulse { animation: dp 2s infinite; }
+@keyframes dp { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.75)} }
+.nav-link {
+  color: var(--muted); font-size: 12px; text-decoration: none;
+  padding: 5px 10px; border-radius: 6px;
+  border: 1px solid var(--border); transition: all 0.15s;
+}
+.nav-link:hover { color: var(--sand); border-color: var(--border2); }
+
+/* --- grid --- */
+.main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 12px;
+  padding: 16px 24px 0;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+.card-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+}
+.card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.card-sub { font-size: 12px; color: var(--muted); }
+
+/* --- point cloud card --- */
+.pc-card {
+  grid-column: 1; grid-row: 1 / 3;
+  position: relative; overflow: hidden;
+  background: linear-gradient(160deg, #0a1220 0%, #060B14 100%);
+}
+.pc-canvas { width: 100%; display: block; border-radius: 8px; }
+.pc-overlay {
+  position: absolute; bottom: 18px; left: 18px; right: 18px;
+  background: rgba(6,11,20,0.72);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pc-site { font-size: 13px; font-weight: 600; }
+.pc-stats { display: flex; gap: 20px; }
+.pc-stat { text-align: right; }
+.pc-stat-val { font-size: 14px; font-weight: 700; color: var(--gold); font-family: 'JetBrains Mono', monospace; }
+.pc-stat-label { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.rotating-badge {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(6,11,20,0.75); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 9px;
+  font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* --- stats grid (col 2-3, row 1) --- */
+.stats-panel { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 8px; padding: 0; background: transparent; border: none; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  flex: 1;
+}
+.stat-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.stat-val { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+/* --- site explorer --- */
+.site-explorer { grid-column: 3; grid-row: 1; }
+select {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--sand); padding: 9px 12px; border-radius: 8px; font-size: 13px;
+  margin-bottom: 12px; cursor: pointer; outline: none;
+  font-family: 'Inter', sans-serif;
+}
+select:focus { border-color: var(--gold); }
+.site-detail-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.site-detail-key { font-size: 11px; color: var(--muted); }
+.site-detail-val { font-size: 12px; font-weight: 500; }
+.risk-badge {
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+}
+.risk-critical { background: rgba(248,113,113,0.15); color: var(--red); }
+.risk-medium { background: rgba(251,146,60,0.15); color: var(--orange); }
+.risk-low { background: rgba(52,211,153,0.12); color: var(--green); }
+.status-badge {
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+}
+.status-reconstructed { background: rgba(52,211,153,0.12); color: var(--green); }
+.status-in_progress { background: rgba(251,146,60,0.12); color: var(--orange); }
+.status-queued { background: rgba(248,113,113,0.12); color: var(--red); }
+.score-bar-wrap { margin-top: 10px; }
+.score-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.score-bar-track {
+  height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;
+}
+.score-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s; }
+
+/* --- terminal --- */
+.terminal-card {
+  grid-column: 1 / 4; grid-row: 3;
+  margin: 0 24px;
+  background: #010509;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.terminal-header {
+  background: var(--surface); padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.term-dot { width: 10px; height: 10px; border-radius: 50%; }
+.term-title { font-size: 12px; color: var(--muted); margin-left: 6px; font-family: 'JetBrains Mono', monospace; }
+.terminal-body { padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; min-height: 160px; }
+.t-line { margin-bottom: 3px; }
+.t-prompt { color: var(--green); }
+.t-cmd { color: var(--sand); }
+.t-url { color: #60A5FA; }
+.t-flag { color: var(--gold); }
+.t-str { color: var(--terra); }
+.t-key { color: #c084fc; }
+.t-val { color: var(--green); }
+.t-num { color: #fb923c; }
+.t-bool { color: #38bdf8; }
+.t-null { color: var(--muted); }
+.t-comment { color: var(--muted); font-style: italic; }
+.t-cursor { display: inline-block; width: 8px; height: 14px; background: var(--green); vertical-align: middle; animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* --- methods grid --- */
+.methods-section { padding: 12px 24px 0; }
+.section-heading {
+  font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.section-heading::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.methods-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.method-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.method-name { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.method-sub { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+.method-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.method-key { font-size: 11px; color: var(--muted); }
+.method-val { font-size: 11px; font-weight: 500; }
+.quality-dots { display: flex; gap: 3px; }
+.qdot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); }
+.qdot.filled { background: var(--gold); }
+.tag {
+  font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
+}
+.tag-yes { background: rgba(52,211,153,0.12); color: var(--green); }
+.tag-no { background: rgba(248,113,113,0.1); color: rgba(248,113,113,0.7); }
+.method-use { font-size: 11px; color: var(--muted); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+/* --- reconstruct form --- */
+.reconstruct-section { padding: 12px 24px 0; }
+.rform { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rform-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+.rform-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; display: block; }
+.rform-select, .rform-range {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--sand); padding: 9px 12px; border-radius: 8px; font-size: 13px;
+  font-family: 'Inter', sans-serif; outline: none; cursor: pointer;
+  margin-bottom: 12px;
+}
+.rform-select:focus { border-color: var(--gold); }
+.rform-range { padding: 6px 0; cursor: pointer; accent-color: var(--gold); }
+.rform-photos-val {
+  display: inline-block; font-size: 18px; font-weight: 700; color: var(--gold);
+  font-family: 'JetBrains Mono', monospace; margin-bottom: 8px;
+}
+.method-radio-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.method-radio {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 12px; border-radius: 7px; cursor: pointer;
+  border: 1px solid var(--border); transition: all 0.15s;
+}
+.method-radio.active { background: var(--gold-dim); border-color: var(--gold); }
+.method-radio input { display: none; }
+.method-radio-name { font-size: 13px; font-weight: 500; }
+.method-radio-meta { font-size: 11px; color: var(--muted); margin-left: auto; }
+.submit-btn {
+  width: 100%; background: var(--gold); color: #060B14;
+  border: none; border-radius: 8px; padding: 11px;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
+  font-family: 'Inter', sans-serif;
+}
+.submit-btn:hover { opacity: 0.9; }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.result-box {
+  background: #010509; border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: #a8c7fa; white-space: pre-wrap; line-height: 1.6;
+  min-height: 60px;
+}
+.stage-pill {
+  display: inline-block; font-size: 11px; padding: 3px 9px;
+  border-radius: 4px; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--muted); margin: 3px 3px 3px 0;
+}
+.stage-pill.done { border-color: var(--green); color: var(--green); background: rgba(52,211,153,0.07); }
+
+footer { text-align: center; padding: 32px 24px 0; font-size: 12px; color: var(--muted); }
+footer a { color: var(--gold); text-decoration: none; }
+.divider { height: 1px; background: var(--border); margin: 0 24px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+const API = '';
+
+const MOCK_HEALTH = { status: 'ok', service: 'EchoFrame Heritage Reconstruction API', version: '1.0.0', sites_loaded: 4, methods_available: 4 };
+const MOCK_SITES = { count: 4, sites: [
+  { id: 'lahore-fort', name: 'Lahore Fort', city: 'Lahore', era: 'Mughal (1566 AD)', status: 'reconstructed', photos: 340, method: 'COLMAP + 3DGS', preservation_score: 72, risk_level: 'medium', coverage_pct: 94.7 },
+  { id: 'rohtas-fort', name: 'Rohtas Fort', city: 'Jhelum', era: 'Sur Empire (1541 AD)', status: 'in_progress', photos: 180, method: 'COLMAP + NeRF', preservation_score: 81, risk_level: 'low', coverage_pct: 71.3 },
+  { id: 'mohenjo-daro', name: 'Mohenjo-daro', city: 'Larkana', era: 'Indus Valley (2500 BC)', status: 'queued', photos: 95, method: 'pending', preservation_score: 45, risk_level: 'critical', coverage_pct: 0 },
+  { id: 'badshahi-mosque', name: 'Badshahi Mosque', city: 'Lahore', era: 'Mughal (1673 AD)', status: 'reconstructed', photos: 220, method: '3DGS', preservation_score: 88, risk_level: 'low', coverage_pct: 97.2 },
+]};
+
+async function apiFetch(path, opts) {
+  try {
+    const r = await fetch(API + path, { signal: AbortSignal.timeout(4000), ...opts });
+    return await r.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+function generateBuildingPts(seed) {
+  const pts = [];
+  let s = (seed || 42) & 0x7FFFFFFF;
+  const rand = () => { s = (s * 1664525 + 1013904223) & 0x7FFFFFFF; return s / 0x7FFFFFFF; };
+
+  for (let i = 0; i < 240; i++)
+    pts.push({ x: (rand()-0.5)*6, y: rand()*4.2, z: -2.1+(rand()-0.5)*0.1, c: [196,110,58] });
+
+  for (let i = 0; i < 100; i++) {
+    const side = rand()<0.5 ? -3.05 : 3.05;
+    pts.push({ x: side+(rand()-0.5)*0.1, y: rand()*4.2, z: (rand()-0.5)*4.2, c: [170,90,42] });
+  }
+  for (let i = 0; i < 130; i++)
+    pts.push({ x: (rand()-0.5)*6, y: rand()*4.2, z: 2.1+(rand()-0.5)*0.1, c: [128,72,34] });
+
+  for (let i = 0; i < 110; i++)
+    pts.push({ x: (rand()-0.5)*6.8, y: 4.2+(rand()-0.5)*0.1, z: (rand()-0.5)*4.6, c: [212,168,67] });
+
+  for (let i = 0; i < 80; i++)
+    pts.push({ x: (rand()-0.5)*10, y: -(rand())*0.1, z: (rand()-0.5)*8, c: [90,72,55] });
+
+  for (let i = 0; i < 70; i++) {
+    const theta = rand()*Math.PI; const phi = rand()*Math.PI*2;
+    pts.push({ x: Math.sin(theta)*Math.cos(phi)*1.3, y: 4.2+Math.cos(theta)*1.1+1.0, z: Math.sin(theta)*Math.sin(phi)*1.3, c: [235,220,195] });
+  }
+
+  for (const [mx,mz] of [[-2.8,-2.0],[2.8,-2.0],[-2.8,2.0],[2.8,2.0]]) {
+    for (let i = 0; i < 22; i++) {
+      const h = rand()*5.8; const phi = rand()*Math.PI*2; const r = 0.23+(rand()-0.5)*0.04;
+      pts.push({ x: mx+Math.cos(phi)*r, y: h, z: mz+Math.sin(phi)*r, c: [225,205,178] });
+    }
+  }
+  return pts;
+}
+
+function PointCloudCanvas({ siteId }) {
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+  const angleRef = useRef(0);
+
+  const pts = useMemo(() => {
+    const seed = siteId ? (siteId.split('').reduce((a,c) => a+c.charCodeAt(0), 0)) : 42;
+    return generateBuildingPts(seed * 31337);
+  }, [siteId]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const draw = () => {
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      if (canvas.width !== w) canvas.width = w;
+      if (canvas.height !== h) canvas.height = h;
+
+      ctx.fillStyle = '#060B14';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.strokeStyle = 'rgba(212,168,67,0.03)';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < w; i += 38) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+      for (let i = 0; i < h; i += 38) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+
+      const a = angleRef.current;
+      const focal = 340;
+      const cx = w/2; const cy = h/2 + 24;
+
+      const rotated = pts.map(p => ({
+        ...p,
+        rx: p.x*Math.cos(a)+p.z*Math.sin(a),
+        ry: p.y,
+        rz: -p.x*Math.sin(a)+p.z*Math.cos(a)
+      })).sort((a,b) => b.rz-a.rz);
+
+      for (const p of rotated) {
+        const depth = p.rz + 9;
+        if (depth <= 0.5) continue;
+        const sc = focal/depth;
+        const sx = cx + p.rx*sc*0.5;
+        const sy = cy - p.ry*sc*0.58;
+        const sz = Math.max(0.7, sc*0.026);
+        const alpha = 0.45 + Math.min(0.45, (9-p.rz)/18);
+        ctx.fillStyle = `rgba(${p.c[0]},${p.c[1]},${p.c[2]},${alpha})`;
+        ctx.beginPath(); ctx.arc(sx, sy, sz, 0, Math.PI*2); ctx.fill();
+      }
+
+      ctx.strokeStyle = 'rgba(212,168,67,0.18)';
+      ctx.lineWidth = 0.5;
+      const baseY = cy + 40;
+      const halfW = 160;
+      ctx.beginPath();
+      ctx.moveTo(cx-halfW, baseY); ctx.lineTo(cx+halfW, baseY);
+      ctx.moveTo(cx, baseY-5); ctx.lineTo(cx, baseY+5);
+      ctx.stroke();
+
+      angleRef.current += 0.0025;
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => cancelAnimationFrame(animRef.current);
+  }, [pts]);
+
+  return <canvas ref={canvasRef} style={{width:'100%',height:'340px',display:'block',borderRadius:'8px'}} />;
+}
+
+const TERMINAL_SEQUENCES = [
+  {
+    label: 'Health Check',
+    cmd: 'curl http://localhost:5000/api/health',
+    responseLines: [
+      '{',
+      '  "status": "ok",',
+      '  "service": "EchoFrame Heritage Reconstruction API",',
+      '  "version": "1.0.0",',
+      '  "team": "EchoFrame Labs",',
+      '  "sites_loaded": 4,',
+      '  "methods_available": 4',
+      '}'
+    ]
+  },
+  {
+    label: 'List Sites',
+    cmd: 'curl http://localhost:5000/api/sites',
+    responseLines: [
+      '{',
+      '  "count": 4,',
+      '  "sites": [',
+      '    { "id": "lahore-fort", "status": "reconstructed", "preservation_score": 72 },',
+      '    { "id": "rohtas-fort", "status": "in_progress", "preservation_score": 81 },',
+      '    { "id": "mohenjo-daro", "status": "queued", "risk_level": "critical" },',
+      '    { "id": "badshahi-mosque", "status": "reconstructed", "preservation_score": 88 }',
+      '  ]',
+      '}'
+    ]
+  },
+  {
+    label: 'Site Details',
+    cmd: 'curl http://localhost:5000/api/sites/lahore-fort',
+    responseLines: [
+      '{',
+      '  "name": "Lahore Fort",',
+      '  "era": "Mughal (1566 AD)",',
+      '  "photos": 340,',
+      '  "point_cloud_size": 2847291,',
+      '  "method": "COLMAP + 3DGS",',
+      '  "coverage_pct": 94.7,',
+      '  "preservation_score": 72',
+      '}'
+    ]
+  },
+  {
+    label: 'POST Reconstruct',
+    cmd: "curl -X POST http://localhost:5000/api/reconstruct \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"site_id\":\"mohenjo-daro\",\"method\":\"midas\",\"num_photos\":95}'",
+    responseLines: [
+      '{',
+      '  "job_id": "MOHE-MID-7842",',
+      '  "status": "queued",',
+      '  "site": "Mohenjo-daro",',
+      '  "method": "MIDAS",',
+      '  "num_photos": 95,',
+      '  "pipeline_stages": ["depth_inference","back_projection","pointcloud_export"],',
+      '  "estimated_hours": 0.05,',
+      '  "mission": "Preserving Pakistani heritage for future generations"',
+      '}'
+    ]
+  }
+];
+
+function colorizeJson(line) {
+  if (line.trim() === '{' || line.trim() === '}' || line.trim() === '[' || line.trim() === ']' || line.trim().endsWith('[') || line.trim() === '],') return <span style={{color:'rgba(245,236,215,0.5)'}}>{line}</span>;
+  const m = line.match(/^(\s*)("[\w_]+")(\s*:\s*)(.+)$/);
+  if (!m) return <span style={{color:'rgba(245,236,215,0.5)'}}>{line}</span>;
+  const [, indent, key, colon, rest] = m;
+  let valEl;
+  if (rest.startsWith('"')) valEl = <span style={{color:'#34D399'}}>{rest}</span>;
+  else if (!isNaN(rest.replace(/[,}]/g,'').trim())) valEl = <span style={{color:'#fb923c'}}>{rest}</span>;
+  else if (rest.startsWith('true')||rest.startsWith('false')) valEl = <span style={{color:'#38bdf8'}}>{rest}</span>;
+  else if (rest.startsWith('null')) valEl = <span style={{color:'rgba(245,236,215,0.4)'}}>{rest}</span>;
+  else valEl = <span style={{color:'rgba(245,236,215,0.7)'}}>{rest}</span>;
+  return <>{indent}<span style={{color:'#c084fc'}}>{key}</span><span style={{color:'rgba(245,236,215,0.4)'}}>{colon}</span>{valEl}</>;
+}
+
+function ApiTerminal() {
+  const [seqIdx, setSeqIdx] = useState(0);
+  const [phase, setPhase] = useState('typing');
+  const [typedChars, setTypedChars] = useState(0);
+  const [shownLines, setShownLines] = useState(0);
+
+  const seq = TERMINAL_SEQUENCES[seqIdx];
+  const cmdStr = seq.cmd;
+
+  useEffect(() => {
+    setPhase('typing');
+    setTypedChars(0);
+    setShownLines(0);
+  }, [seqIdx]);
+
+  useEffect(() => {
+    if (phase === 'typing') {
+      if (typedChars < cmdStr.length) {
+        const t = setTimeout(() => setTypedChars(c => c+1), 28);
+        return () => clearTimeout(t);
+      } else {
+        const t = setTimeout(() => setPhase('responding'), 500);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [phase, typedChars, cmdStr]);
+
+  useEffect(() => {
+    if (phase === 'responding') {
+      if (shownLines < seq.responseLines.length) {
+        const t = setTimeout(() => setShownLines(n => n+1), 80);
+        return () => clearTimeout(t);
+      } else {
+        const t = setTimeout(() => {
+          setSeqIdx(i => (i+1) % TERMINAL_SEQUENCES.length);
+        }, 3200);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [phase, shownLines, seq.responseLines.length]);
+
+  const displayCmd = cmdStr.slice(0, typedChars);
+  const displayLines = seq.responseLines.slice(0, shownLines);
+
+  return (
+    <div className="terminal-card">
+      <div className="terminal-header">
+        <div className="term-dot" style={{background:'#FF5F57'}}></div>
+        <div className="term-dot" style={{background:'#FFBD2E'}}></div>
+        <div className="term-dot" style={{background:'#28C840'}}></div>
+        <span className="term-title">bash · EchoFrame API Test · {seq.label}</span>
+        <div style={{marginLeft:'auto',display:'flex',gap:'6px'}}>
+          {TERMINAL_SEQUENCES.map((s,i) => (
+            <div key={i} onClick={() => setSeqIdx(i)} style={{
+              width:8,height:8,borderRadius:'50%',cursor:'pointer',
+              background: i===seqIdx ? 'var(--gold)' : 'rgba(255,255,255,0.12)'
+            }}></div>
+          ))}
+        </div>
+      </div>
+      <div className="terminal-body">
+        <div className="t-line">
+          <span className="t-prompt">~/echoframe</span>
+          <span style={{color:'var(--muted)'}}> $ </span>
+          {displayCmd.split('\n').map((line,i) => (
+            <span key={i}>
+              {i > 0 && <><br/><span style={{visibility:'hidden'}}>$ </span></>}
+              {line.includes('http://') ? (
+                <>
+                  {line.split('http://')[0]}
+                  <span className="t-url">http://{line.split('http://')[1].split(' ')[0]}</span>
+                  {line.split('http://')[1].includes(' ') ? ' '+line.split('http://')[1].split(' ').slice(1).join(' ') : ''}
+                </>
+              ) : line}
+            </span>
+          ))}
+          {phase === 'typing' && <span className="t-cursor"></span>}
+        </div>
+        {phase === 'responding' && displayLines.length > 0 && (
+          <div style={{marginTop:'10px'}}>
+            {displayLines.map((line,i) => (
+              <div key={i} className="t-line" style={{color:'var(--sand)'}}>
+                {colorizeJson(line)}
+              </div>
+            ))}
+            {shownLines < seq.responseLines.length && <span className="t-cursor"></span>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SiteExplorer({ sites }) {
+  const [selectedId, setSelectedId] = useState('lahore-fort');
+  const [detail, setDetail] = useState(null);
+
+  const site = useMemo(() => sites.find(s => s.id === selectedId), [sites, selectedId]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    apiFetch('/api/sites/' + selectedId).then(d => setDetail(d));
+  }, [selectedId]);
+
+  const score = site ? site.preservation_score : 0;
+  const scoreColor = score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--orange)' : 'var(--red)';
+
+  return (
+    <div className="card site-explorer">
+      <div className="card-label">Site Explorer</div>
+      <select value={selectedId} onChange={e => setSelectedId(e.target.value)}>
+        {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+      </select>
+      {site && (
+        <>
+          <div className="site-detail-row">
+            <span className="site-detail-key">Status</span>
+            <span className={`status-badge status-${site.status}`}>{site.status.replace('_',' ')}</span>
+          </div>
+          <div className="site-detail-row">
+            <span className="site-detail-key">Risk</span>
+            <span className={`risk-badge risk-${site.risk_level}`}>{site.risk_level}</span>
+          </div>
+          <div className="site-detail-row">
+            <span className="site-detail-key">Era</span>
+            <span className="site-detail-val" style={{fontSize:'11px'}}>{site.era}</span>
+          </div>
+          <div className="site-detail-row">
+            <span className="site-detail-key">Photos</span>
+            <span className="site-detail-val" style={{fontFamily:'JetBrains Mono,monospace',color:'var(--gold)'}}>{site.photos}</span>
+          </div>
+          <div className="site-detail-row">
+            <span className="site-detail-key">Method</span>
+            <span className="site-detail-val" style={{fontSize:'11px'}}>{site.method}</span>
+          </div>
+          {detail && detail.point_cloud_size > 0 && (
+            <div className="site-detail-row">
+              <span className="site-detail-key">3D Points</span>
+              <span className="site-detail-val" style={{fontFamily:'JetBrains Mono,monospace',color:'var(--gold)',fontSize:'12px'}}>{detail.point_cloud_size.toLocaleString()}</span>
+            </div>
+          )}
+          <div className="score-bar-wrap">
+            <div className="score-bar-label">
+              <span>Preservation Score</span>
+              <span style={{color: scoreColor, fontWeight:600}}>{score}/100</span>
+            </div>
+            <div className="score-bar-track">
+              <div className="score-bar-fill" style={{width: score+'%', background: scoreColor}}></div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+const METHODS_DATA = [
+  { id:'colmap', name:'COLMAP', sub:'Structure from Motion + MVS', inputs:'50+ overlapping photos', output:'Dense point cloud (.ply)', gpu:false, time:'2-8 hrs', quality:4, realtime:false, use:'Foundation for all pipelines' },
+  { id:'nerf', name:'NeRF', sub:'Neural Radiance Fields', inputs:'20-200 calibrated images', output:'Implicit neural scene', gpu:true, time:'4-12 hrs', quality:5, realtime:false, use:'Photorealistic archival renders' },
+  { id:'3dgs', name:'3DGS', sub:'3D Gaussian Splatting', inputs:'Calibrated images + poses', output:'Gaussian splat (.splat)', gpu:true, time:'20-45 min', quality:5, realtime:true, use:'Explorable worlds (PMW primary)' },
+  { id:'midas', name:'MiDaS', sub:'Monocular Depth Estimation', inputs:'Single image / video', output:'Relative depth map', gpu:false, time:'Instant', quality:2, realtime:true, use:'Quick scan from single photo' },
+];
+
+function MethodCard({ m }) {
+  return (
+    <div className="method-card">
+      <div className="method-name" style={{color:'var(--gold)'}}>{m.name}</div>
+      <div className="method-sub">{m.sub}</div>
+      <div className="method-row">
+        <span className="method-key">Quality</span>
+        <div className="quality-dots">
+          {[1,2,3,4,5].map(i => <div key={i} className={`qdot ${i<=m.quality?'filled':''}`}></div>)}
+        </div>
+      </div>
+      <div className="method-row">
+        <span className="method-key">GPU</span>
+        <span className={`tag ${m.gpu?'tag-yes':'tag-no'}`}>{m.gpu?'Required':'Not needed'}</span>
+      </div>
+      <div className="method-row">
+        <span className="method-key">Realtime</span>
+        <span className={`tag ${m.realtime?'tag-yes':'tag-no'}`}>{m.realtime?'Yes':'No'}</span>
+      </div>
+      <div className="method-row">
+        <span className="method-key">Est. Time</span>
+        <span className="method-val" style={{fontFamily:'JetBrains Mono,monospace',fontSize:'11px',color:'var(--gold)'}}>{m.time}</span>
+      </div>
+      <div className="method-row">
+        <span className="method-key">Input</span>
+        <span className="method-val" style={{fontSize:'10px',textAlign:'right',maxWidth:'120px'}}>{m.inputs}</span>
+      </div>
+      <div className="method-use">PMW use: {m.use}</div>
+    </div>
+  );
+}
+
+const SITE_IDS = ['lahore-fort','rohtas-fort','mohenjo-daro','badshahi-mosque'];
+const SITE_LABELS = { 'lahore-fort':'Lahore Fort', 'rohtas-fort':'Rohtas Fort', 'mohenjo-daro':'Mohenjo-daro', 'badshahi-mosque':'Badshahi Mosque' };
+const METHOD_META = { 'colmap':'~4.5h/100 photos', 'nerf':'~8h/100 photos', '3dgs':'~33min/100 photos', 'midas':'<1min (single pass)' };
+
+function ReconstructCard() {
+  const [siteId, setSiteId] = useState('lahore-fort');
+  const [method, setMethod] = useState('colmap');
+  const [numPhotos, setNumPhotos] = useState(120);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setResult(null);
+    const data = await apiFetch('/api/reconstruct', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ site_id: siteId, method: method, num_photos: numPhotos })
+    });
+    setLoading(false);
+    setResult(data || { error: 'Could not reach Flask server', hint: 'Run: python app.py' });
+  };
+
+  return (
+    <div className="rform">
+      <div className="rform-card">
+        <div className="card-label" style={{marginBottom:'14px'}}>Reconstruction Simulator</div>
+        <label className="rform-label">Heritage Site</label>
+        <select className="rform-select" value={siteId} onChange={e => setSiteId(e.target.value)}>
+          {SITE_IDS.map(id => <option key={id} value={id}>{SITE_LABELS[id]}</option>)}
+        </select>
+
+        <label className="rform-label">Photos to Process</label>
+        <div className="rform-photos-val">{numPhotos}</div>
+        <input type="range" className="rform-range" min="10" max="500" value={numPhotos} onChange={e => setNumPhotos(parseInt(e.target.value))} />
+
+        <label className="rform-label" style={{marginTop:'4px'}}>3D Reconstruction Method</label>
+        <div className="method-radio-group">
+          {['colmap','nerf','3dgs','midas'].map(m => (
+            <label key={m} className={`method-radio ${method===m?'active':''}`} onClick={() => setMethod(m)}>
+              <input type="radio" value={m} checked={method===m} onChange={()=>{}} />
+              <span className="method-radio-name">{m.toUpperCase()}</span>
+              <span className="method-radio-meta">{METHOD_META[m]}</span>
+            </label>
+          ))}
+        </div>
+
+        <button className="submit-btn" disabled={loading} onClick={handleSubmit}>
+          {loading ? 'Queuing Job...' : 'POST /api/reconstruct'}
+        </button>
+      </div>
+
+      <div className="rform-card">
+        <div className="card-label" style={{marginBottom:'14px'}}>API Response</div>
+        {!result && !loading && (
+          <div style={{color:'var(--muted)',fontSize:'13px',marginBottom:'12px'}}>
+            Hit the button to send a real POST request to the Flask API. The response below is live.
+          </div>
+        )}
+        {loading && (
+          <div style={{color:'var(--gold)',fontSize:'13px',marginBottom:'8px'}}>Sending POST request...</div>
+        )}
+        {result && (
+          <>
+            <div className="result-box">
+              {JSON.stringify(result, null, 2)}
+            </div>
+            {result.pipeline_stages && (
+              <div style={{marginTop:'12px'}}>
+                <div style={{fontSize:'11px',color:'var(--muted)',marginBottom:'6px'}}>Pipeline Stages</div>
+                {result.pipeline_stages.map((stage,i) => (
+                  <span key={i} className={`stage-pill ${i===0?'done':''}`}>{stage}</span>
+                ))}
+              </div>
+            )}
+            {result.estimated_hours && (
+              <div style={{marginTop:'12px',fontSize:'12px',color:'var(--muted)'}}>
+                Estimated time: <span style={{color:'var(--gold)',fontWeight:600,fontFamily:'JetBrains Mono,monospace'}}>{result.estimated_hours}h</span>
+                {'  '}|{'  '}
+                Est. points: <span style={{color:'var(--gold)',fontWeight:600,fontFamily:'JetBrains Mono,monospace'}}>{result.estimated_points?.toLocaleString()}</span>
+              </div>
+            )}
+          </>
+        )}
+
+        <div style={{marginTop:'16px', paddingTop:'12px', borderTop:'1px solid var(--border)'}}>
+          <div style={{fontSize:'11px',color:'var(--muted)',marginBottom:'8px'}}>Equivalent curl command:</div>
+          <div style={{background:'#010509',border:'1px solid var(--border)',borderRadius:'7px',padding:'12px',fontFamily:'JetBrains Mono,monospace',fontSize:'11px',color:'#34D399',lineHeight:1.7}}>
+            {`curl -X POST http://localhost:5000/api/reconstruct \\
+  -H "Content-Type: application/json" \\
+  -d '{"site_id":"${siteId}","method":"${method}","num_photos":${numPhotos}}'`}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [health, setHealth] = useState(null);
+  const [sites, setSites] = useState([]);
+  const [pcSite, setPcSite] = useState('lahore-fort');
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    apiFetch('/api/health').then(d => setHealth(d || MOCK_HEALTH));
+    apiFetch('/api/sites').then(d => setSites((d || MOCK_SITES).sites));
+    apiFetch('/api/stats').then(d => setStats(d));
+  }, []);
+
+  const siteNames = { 'lahore-fort':'Lahore Fort', 'rohtas-fort':'Rohtas Fort', 'mohenjo-daro':'Mohenjo-daro', 'badshahi-mosque':'Badshahi Mosque' };
+  const pcSiteData = sites.find(s => s.id === pcSite);
+
+  const statCards = [
+    { icon:'🏛', val: health?.sites_loaded ?? 4, label:'Heritage Sites', bg:'rgba(212,168,67,0.08)' },
+    { icon:'📸', val: stats?.total_photos_processed?.toLocaleString() ?? '835', label:'Photos Processed', bg:'rgba(196,98,45,0.08)' },
+    { icon:'☁', val: stats ? (stats.total_3d_points/1e6).toFixed(1)+'M' : '6.0M', label:'3D Points Total', bg:'rgba(96,165,250,0.08)' },
+    { icon:'⚠', val: stats?.critical_risk_sites?.length ?? 1, label:'Critical Risk Sites', bg:'rgba(248,113,113,0.08)' },
+  ];
+
+  return (
+    <div>
+      <div className="header">
+        <div className="logo-row">
+          <div className="logo-box">EF</div>
+          <div>
+            <div className="logo-name">EchoFrame Labs</div>
+            <div style={{fontSize:'11px',color:'var(--muted)',marginTop:'1px'}}>Heritage Reconstruction API · PMW × TechRealm 2026</div>
+          </div>
+        </div>
+        <div className="header-right">
+          <div className="badge badge-live"><div className="dot dot-pulse"></div>{health ? 'Flask Running' : 'Connecting...'}</div>
+          <div className="badge badge-ver">v{health?.version ?? '1.0.0'}</div>
+          <a href="/" className="nav-link">HTML Frontend</a>
+        </div>
+      </div>
+
+      <div className="main-grid">
+        <div className="card pc-card">
+          <div className="card-label">3D Point Cloud Visualization · Rotating</div>
+          <PointCloudCanvas siteId={pcSite} />
+          <div className="rotating-badge">Y-axis rotation · 0.0025 rad/frame</div>
+          <div className="pc-overlay">
+            <div>
+              <div className="pc-site">{siteNames[pcSite]}</div>
+              <div style={{fontSize:'11px',color:'var(--muted)',marginTop:'3px'}}>
+                {['lahore-fort','rohtas-fort','badshahi-mosque','mohenjo-daro'].map(id => (
+                  <span key={id} onClick={() => setPcSite(id)} style={{
+                    cursor:'pointer', marginRight:'8px', fontSize:'10px',
+                    color: pcSite===id ? 'var(--gold)' : 'var(--muted)',
+                    borderBottom: pcSite===id ? '1px solid var(--gold)' : 'none'
+                  }}>{siteNames[id]}</span>
+                ))}
+              </div>
+            </div>
+            <div className="pc-stats">
+              {pcSiteData && pcSiteData.point_cloud_size > 0 && (
+                <div className="pc-stat">
+                  <div className="pc-stat-val">{(pcSiteData.point_cloud_size/1e6).toFixed(2)}M</div>
+                  <div className="pc-stat-label">3D Points</div>
+                </div>
+              )}
+              {pcSiteData && (
+                <div className="pc-stat">
+                  <div className="pc-stat-val">{pcSiteData.coverage_pct}%</div>
+                  <div className="pc-stat-label">Coverage</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="stats-panel">
+          {statCards.map((sc,i) => (
+            <div key={i} className="stat-card">
+              <div className="stat-icon" style={{background: sc.bg}}>{sc.icon}</div>
+              <div>
+                <div className="stat-val" style={{color: i===3?'var(--red)':'var(--gold)'}}>{sc.val}</div>
+                <div className="stat-lbl">{sc.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <SiteExplorer sites={sites} />
+      </div>
+
+      <div style={{padding:'12px 24px 0'}}>
+        <ApiTerminal />
+      </div>
+
+      <div className="methods-section">
+        <div className="section-heading">3D Reconstruction Methods</div>
+        <div className="methods-grid">
+          {METHODS_DATA.map(m => <MethodCard key={m.id} m={m} />)}
+        </div>
+      </div>
+
+      <div className="reconstruct-section">
+        <div className="section-heading">Reconstruction Simulator · POST /api/reconstruct</div>
+        <ReconstructCard />
+      </div>
+
+      <footer>
+        <p>EchoFrame Labs · AI-Based 3D Scene Reconstruction Track · <a href="/">HTML Frontend</a> · <a href="/api/health">API Health</a></p>
+        <p style={{marginTop:'6px',color:'rgba(245,236,215,0.2)'}}>PreserveMy.World × TechRealm 2026 · Rebuilding the Past. Designing the Future.</p>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
