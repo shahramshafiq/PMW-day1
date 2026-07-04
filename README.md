@@ -1,23 +1,11 @@
-# PMW Weeks 1-2: GitHub Portfolio, Research & Custom Build
-### Shahram Shafiq, AI-Based 3D Scene Reconstruction Track, PreserveMy.World x TechRealm Internship 2026
+# PreserveMy.World: AI-Based 3D Scene Reconstruction
+### Shahram Shafiq, PreserveMy.World x TechRealm Internship 2026
 
 ---
 
 ## What this repo is
 
-This is my submission repo for the **PreserveMy.World x TechRealm Impact Internship** (22 Jun to 19 Jul 2026), team **EchoFrame Labs**. I'm on the AI-Based 3D Reconstruction track. So far this repo covers:
-
-- Setting up GitHub properly and building a personal portfolio page
-- Learning 3D reconstruction fundamentals and documenting the process
-- Writing a public blog post
-- Researching and comparing 3D reconstruction methods (COLMAP, NeRF, 3DGS, MiDaS)
-- Completing the youthxAI Python + Colab exercises
-- Building a full stack Flask + React app for the Custom Assignment
-- An AI-assisted strict review of Week 1 work, with a real merge fix and a prompt engineering reflection
-- Sourcing and curating real, verified multi-angle footage of Badshahi Mosque
-- Linear regression from scratch plus the Kaggle Intro to ML exercises, applied to reconstruction data
-
-PreserveMy.World turns phone footage into explorable 3D digital records of heritage sites. My track is about building the AI pipeline that makes that possible.
+This is my working repo for the **PreserveMy.World x TechRealm Impact Internship**, team **EchoFrame Labs**, on the AI-Based 3D Reconstruction track. PreserveMy.World turns phone footage into explorable 3D digital records of heritage sites. My job on this track is to understand and build pieces of the AI pipeline that makes that possible: sourcing footage, comparing reconstruction methods, and building tools around the data.
 
 ---
 
@@ -38,7 +26,7 @@ PreserveMy.World turns phone footage into explorable 3D digital records of herit
 ```
 PMW-day1/
 ├── README.md                          <- you are here
-├── week1-ai-review.md                 <- strict AI audit of Week 1, merge fix, prompt reflection
+├── week1-ai-review.md                 <- strict repo audit, merge fix, prompt reflection
 ├── portfolio/
 │   └── index.html                     <- personal HTML portfolio page
 ├── 3d-learning/
@@ -54,7 +42,7 @@ PMW-day1/
 │   ├── badshahi-mosque-multiangle.md  <- sourced, cited, multi-angle footage write-up
 │   └── images/                        <- 6 verified real photos of Badshahi Mosque
 ├── heritage-writing/
-│   └── mohenjo-daro.md                <- researched, cited heritage write-up (special session)
+│   └── mohenjo-daro.md                <- researched, cited heritage write-up
 ├── youthxai_python_colab.ipynb        <- Kaggle Python course applied to 3D reconstruction
 ├── youthxai_linear_regression.ipynb   <- linear regression + Kaggle Intro to ML
 ├── youthxai-regression-output/        <- generated plots from the regression notebook
@@ -83,7 +71,7 @@ My portfolio lives at [`portfolio/index.html`](portfolio/index.html). It's a sin
 
 ## 3D Reconstruction: What I Learned
 
-I started from near zero on this. Here's my honest understanding after Week 1:
+I started from near zero on this. Here's my honest understanding so far:
 
 **The core problem:** You have a flat 2D photo. You want to recover the 3D structure of whatever was photographed. The problem is it's under-constrained: infinitely many 3D scenes could produce the same 2D image.
 
@@ -131,7 +119,7 @@ Monocular depth (MiDaS) is useful when only a single photo of a site exists.
 
 ---
 
-## youthxAI: Python + Colab
+## Python Fundamentals Applied to 3D Reconstruction
 
 Notebook: [`youthxai_python_colab.ipynb`](youthxai_python_colab.ipynb)
 
@@ -139,7 +127,7 @@ Covers the 7 Kaggle Python course topics (variables, functions, conditionals, li
 
 ---
 
-## Custom Assignment: Heritage Reconstruction API
+## Heritage Reconstruction API
 
 Full app: [`heritage-api/`](heritage-api/)
 
@@ -147,15 +135,15 @@ A full stack Flask + React web app modeling the actual PMW reconstruction pipeli
 
 ---
 
-## Week 1 AI Review and Prompt Engineering
+## Repo Audit and Prompt Engineering
 
 Full write-up: [`week1-ai-review.md`](week1-ai-review.md)
 
-Ran a strict AI audit against my own Week 1 GitHub work instead of asking for generic feedback. The top finding was real: a PR merging Day 2 research into `main` had been open for over a week without being merged, meaning that work was invisible to anyone browsing the default branch. Fixed it, rewrote the README to reflect the true scope of the repo, and documented what worked and failed about the prompting process itself.
+Ran a strict AI-assisted audit against my own GitHub work instead of asking for generic feedback. The top finding was real: a PR merging research into `main` had been open for over a week without being merged, meaning that work was invisible to anyone browsing the default branch. Fixed it, rewrote the README to reflect the true scope of the repo, and documented what worked and failed about the prompting process itself.
 
 ---
 
-## Sourced Multi-Angle Footage: Badshahi Mosque
+## Multi-Angle Footage: Badshahi Mosque
 
 Full write-up: [`footage-research/badshahi-mosque-multiangle.md`](footage-research/badshahi-mosque-multiangle.md)
 
@@ -163,15 +151,15 @@ Sourced, downloaded, and individually verified 6 real photos of Badshahi Mosque 
 
 ---
 
-## Special Session: Research Methods, Sourcing & Writing
+## Heritage Write-up: Mohenjo-daro
 
 Write-up: [`heritage-writing/mohenjo-daro.md`](heritage-writing/mohenjo-daro.md)
 
-A 451-word researched piece on Mohenjo-daro, following the guest masterclass prompt (what it is, why it matters, what a visitor should notice). Every historical fact, construction date, population, UNESCO status, the salinity threat, the 2012 and 2022 conservation warnings, is checked against Wikipedia and cross-verified against a second independent source (Ancient Origins and UNESCO's own World Heritage Centre listing) before being written down.
+A 451-word researched piece on Mohenjo-daro: what it is, why it matters, what a visitor should notice. Every historical fact, construction date, population, UNESCO status, the salinity threat, the 2012 and 2022 conservation warnings, is checked against Wikipedia and cross-verified against a second independent source (Ancient Origins and UNESCO's own World Heritage Centre listing) before being written down.
 
 ---
 
-## youthxAI: Linear Regression
+## Linear Regression and Kaggle Intro to ML
 
 Notebook: [`youthxai_linear_regression.ipynb`](youthxai_linear_regression.ipynb)
 
@@ -187,4 +175,4 @@ Pakistan has hundreds of heritage sites that are underdocumented. Mohenjo-daro, 
 
 ---
 
-*Week 1 and Week 2 progress: portfolio, 3D learning, research comparison, two youthxAI Colab notebooks, the heritage reconstruction API, a real AI-assisted repo audit, and sourced multi-angle footage all live in this repo.*
+*Portfolio, 3D reconstruction research, two applied Python/ML notebooks, a full stack heritage reconstruction API, a real repo audit, and sourced multi-angle footage all live in this repo.*
