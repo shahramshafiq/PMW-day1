@@ -1,6 +1,6 @@
 # 3D Reconstruction Methods: Research for PreserveMy.World
 
-**Shahram Shafiq, AI Track, PMW Internship 2026 — Day 2**
+**Shahram Shafiq, AI Track, PMW Internship 2026 (Day 2)**
 
 ---
 
