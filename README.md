@@ -1,11 +1,11 @@
-# PMW Week 1: GitHub Portfolio, Research & Custom Build
+# PMW Weeks 1-2: GitHub Portfolio, Research & Custom Build
 ### Shahram Shafiq, AI-Based 3D Scene Reconstruction Track, PreserveMy.World x TechRealm Internship 2026
 
 ---
 
 ## What this repo is
 
-This is my Week 1 submission repo for the **PreserveMy.World x TechRealm Impact Internship** (22 Jun to 19 Jul 2026), team **EchoFrame Labs**. I'm on the AI-Based 3D Reconstruction track. Week 1 covered:
+This is my submission repo for the **PreserveMy.World x TechRealm Impact Internship** (22 Jun to 19 Jul 2026), team **EchoFrame Labs**. I'm on the AI-Based 3D Reconstruction track. So far this repo covers:
 
 - Setting up GitHub properly and building a personal portfolio page
 - Learning 3D reconstruction fundamentals and documenting the process
@@ -13,6 +13,9 @@ This is my Week 1 submission repo for the **PreserveMy.World x TechRealm Impact 
 - Researching and comparing 3D reconstruction methods (COLMAP, NeRF, 3DGS, MiDaS)
 - Completing the youthxAI Python + Colab exercises
 - Building a full stack Flask + React app for the Custom Assignment
+- An AI-assisted strict review of Week 1 work, with a real merge fix and a prompt engineering reflection
+- Sourcing and curating real, verified multi-angle footage of Badshahi Mosque
+- Linear regression from scratch plus the Kaggle Intro to ML exercises, applied to reconstruction data
 
 PreserveMy.World turns phone footage into explorable 3D digital records of heritage sites. My track is about building the AI pipeline that makes that possible.
 
@@ -35,6 +38,7 @@ PreserveMy.World turns phone footage into explorable 3D digital records of herit
 ```
 PMW-day1/
 ├── README.md                          <- you are here
+├── week1-ai-review.md                 <- strict AI audit of Week 1, merge fix, prompt reflection
 ├── portfolio/
 │   └── index.html                     <- personal HTML portfolio page
 ├── 3d-learning/
@@ -46,7 +50,12 @@ PMW-day1/
 │   ├── 3d_methods_comparison.md       <- COLMAP vs NeRF vs 3DGS vs MiDaS
 │   ├── depth_map_demo.py              <- monocular depth simulation script
 │   └── depth_output.png               <- generated output
+├── footage-research/
+│   ├── badshahi-mosque-multiangle.md  <- sourced, cited, multi-angle footage write-up
+│   └── images/                        <- 6 verified real photos of Badshahi Mosque
 ├── youthxai_python_colab.ipynb        <- Kaggle Python course applied to 3D reconstruction
+├── youthxai_linear_regression.ipynb   <- linear regression + Kaggle Intro to ML
+├── youthxai-regression-output/        <- generated plots from the regression notebook
 └── heritage-api/
     ├── app.py                         <- Flask REST API (7 endpoints)
     ├── templates/index.html           <- HTML frontend
@@ -136,6 +145,30 @@ A full stack Flask + React web app modeling the actual PMW reconstruction pipeli
 
 ---
 
+## Week 1 AI Review and Prompt Engineering
+
+Full write-up: [`week1-ai-review.md`](week1-ai-review.md)
+
+Ran a strict AI audit against my own Week 1 GitHub work instead of asking for generic feedback. The top finding was real: a PR merging Day 2 research into `main` had been open for over a week without being merged, meaning that work was invisible to anyone browsing the default branch. Fixed it, rewrote the README to reflect the true scope of the repo, and documented what worked and failed about the prompting process itself.
+
+---
+
+## Sourced Multi-Angle Footage: Badshahi Mosque
+
+Full write-up: [`footage-research/badshahi-mosque-multiangle.md`](footage-research/badshahi-mosque-multiangle.md)
+
+Sourced, downloaded, and individually verified 6 real photos of Badshahi Mosque covering distinct angles (front facade, aerial, interior, wide front view with garden, minaret side angle, elevated panorama), then wrote a technical piece auditing what the footage set does and does not cover for an actual 3D reconstruction pipeline. Cross-checked against the simulated coverage number used for the same site in heritage-api.
+
+---
+
+## youthxAI: Linear Regression
+
+Notebook: [`youthxai_linear_regression.ipynb`](youthxai_linear_regression.ipynb)
+
+Linear regression implemented from scratch with gradient descent and checked against scikit-learn (both converge on the same slope and intercept), applied to predicting reconstruction time from photo count. Followed by the core Kaggle Intro to ML lessons (data exploration, first model, validation, underfitting/overfitting, random forests) applied to a simulated 220-job heritage reconstruction dataset. Every cell in this notebook was executed and verified before committing; the generated plots are in [`youthxai-regression-output/`](youthxai-regression-output/).
+
+---
+
 ## Mission Connection
 
 PreserveMy.World's core mission is to document and preserve cultural heritage before it disappears. 3D reconstruction is the technical engine that makes this possible, turning footage of a mosque, fort, or old city street into a navigable digital record. As someone on the AI track, my job is to understand and eventually contribute to that pipeline.
@@ -144,4 +177,4 @@ Pakistan has hundreds of heritage sites that are underdocumented. Mohenjo-daro, 
 
 ---
 
-*Week 1 complete: portfolio, 3D learning, research comparison, youthxAI Colab notebook, and the heritage reconstruction API all live in this repo.*
+*Week 1 and Week 2 progress: portfolio, 3D learning, research comparison, two youthxAI Colab notebooks, the heritage reconstruction API, a real AI-assisted repo audit, and sourced multi-angle footage all live in this repo.*
