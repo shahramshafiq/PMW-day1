@@ -53,6 +53,8 @@ PMW-day1/
 ├── footage-research/
 │   ├── badshahi-mosque-multiangle.md  <- sourced, cited, multi-angle footage write-up
 │   └── images/                        <- 6 verified real photos of Badshahi Mosque
+├── heritage-writing/
+│   └── mohenjo-daro.md                <- researched, cited heritage write-up (special session)
 ├── youthxai_python_colab.ipynb        <- Kaggle Python course applied to 3D reconstruction
 ├── youthxai_linear_regression.ipynb   <- linear regression + Kaggle Intro to ML
 ├── youthxai-regression-output/        <- generated plots from the regression notebook
@@ -158,6 +160,14 @@ Ran a strict AI audit against my own Week 1 GitHub work instead of asking for ge
 Full write-up: [`footage-research/badshahi-mosque-multiangle.md`](footage-research/badshahi-mosque-multiangle.md)
 
 Sourced, downloaded, and individually verified 6 real photos of Badshahi Mosque covering distinct angles (front facade, aerial, interior, wide front view with garden, minaret side angle, elevated panorama), then wrote a technical piece auditing what the footage set does and does not cover for an actual 3D reconstruction pipeline. Cross-checked against the simulated coverage number used for the same site in heritage-api.
+
+---
+
+## Special Session: Research Methods, Sourcing & Writing
+
+Write-up: [`heritage-writing/mohenjo-daro.md`](heritage-writing/mohenjo-daro.md)
+
+A 451-word researched piece on Mohenjo-daro, following the guest masterclass prompt (what it is, why it matters, what a visitor should notice). Every historical fact, construction date, population, UNESCO status, the salinity threat, the 2012 and 2022 conservation warnings, is checked against Wikipedia and cross-verified against a second independent source (Ancient Origins and UNESCO's own World Heritage Centre listing) before being written down.
 
 ---
 
