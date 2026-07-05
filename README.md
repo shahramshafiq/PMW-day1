@@ -43,6 +43,9 @@ PMW-day1/
 │   └── images/                        <- 6 verified real photos of Badshahi Mosque
 ├── heritage-writing/
 │   └── mohenjo-daro.md                <- researched, cited heritage write-up
+├── ml-viz-ar-capture3d/
+│   ├── capture_to_3d_pipeline.py      <- ML features, AR lines, capture-to-3D on a real photo
+│   └── output/                        <- 3 generated visualizations
 ├── youthxai_python_colab.ipynb        <- Kaggle Python course applied to 3D reconstruction
 ├── youthxai_linear_regression.ipynb   <- linear regression + Kaggle Intro to ML
 ├── youthxai-regression-output/        <- generated plots from the regression notebook
@@ -164,6 +167,14 @@ A 451-word researched piece on Mohenjo-daro: what it is, why it matters, what a 
 Notebook: [`youthxai_linear_regression.ipynb`](youthxai_linear_regression.ipynb)
 
 Linear regression implemented from scratch with gradient descent and checked against scikit-learn (both converge on the same slope and intercept), applied to predicting reconstruction time from photo count. Followed by the core Kaggle Intro to ML lessons (data exploration, first model, validation, underfitting/overfitting, random forests) applied to a simulated 220-job heritage reconstruction dataset. Every cell in this notebook was executed and verified before committing; the generated plots are in [`youthxai-regression-output/`](youthxai-regression-output/).
+
+---
+
+## ML Visualizations, AR Lines and Capture-to-3D
+
+Pipeline and write-up: [`ml-viz-ar-capture3d/`](ml-viz-ar-capture3d/)
+
+One real, already-sourced photo (the Badshahi Mosque front facade) run through three stages: Sobel gradient and Harris corner feature detection, an AR-style line overlay simulating what a heritage app would show live on a phone camera, and a heuristic capture-to-3D colored point cloud. The first version of the point cloud stage was broken (the sky got treated as a physical surface and warped the whole projection), caught by actually looking at the output, fixed by masking the sky out using measured saturation/brightness thresholds before back-projecting.
 
 ---
 
