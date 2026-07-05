@@ -4,9 +4,12 @@ PMW Internship 2026, AI-Based 3D Reconstruction Track, Week 2 Day 4
 
 One real photo goes through three stages: ML feature/edge visualization,
 an AR-style line overlay, and a heuristic capture-to-3D point cloud.
-Source photo: footage-research/images/01-front-facade.jpg, the Badshahi
-Mosque front facade photo already sourced and verified for the
-"Source, Curate & Write About Footage" submission.
+Source photo: source/jaulian-monastery-taxila.jpg, an elevated view of
+the Jaulian Buddhist monastery ruins at Taxila, sourced from Wikimedia
+Commons via the Taxila Wikipedia article and verified before use. Using
+Taxila here on purpose: it ties directly to the Team Taxila group sprint
+running in parallel, and the ruined monk cells give richer structure to
+detect than a flat facade would.
 """
 
 import matplotlib
@@ -17,7 +20,7 @@ import cv2
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-SOURCE_PHOTO = os.path.join(SCRIPT_DIR, '..', 'footage-research', 'images', '01-front-facade.jpg')
+SOURCE_PHOTO = os.path.join(SCRIPT_DIR, 'source', 'jaulian-monastery-taxila.jpg')
 OUT_DIR = os.path.join(SCRIPT_DIR, 'output')
 
 photo_bgr = cv2.imread(SOURCE_PHOTO)
@@ -45,7 +48,7 @@ print(f"    Harris corners detected (above threshold): {len(corner_xs)} pixels")
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 axes[0].imshow(photo_rgb)
-axes[0].set_title('Original: Badshahi Mosque front facade', fontsize=10, fontweight='bold')
+axes[0].set_title('Original: Jaulian monastery ruins, Taxila', fontsize=10, fontweight='bold')
 axes[0].axis('off')
 
 axes[1].imshow(grad_mag_norm, cmap='inferno')
@@ -68,9 +71,9 @@ print("    Saved: output/01_ml_visualization.png")
 # ---------------------------------------------------------------
 print("\n[2] AR line overlay: Hough line detection on top of the real photo")
 
-edges_for_hough = cv2.Canny(gray, 60, 150)
-lines = cv2.HoughLinesP(edges_for_hough, rho=1, theta=np.pi / 180, threshold=60,
-                         minLineLength=40, maxLineGap=8)
+edges_for_hough = cv2.Canny(gray, 100, 200)
+lines = cv2.HoughLinesP(edges_for_hough, rho=1, theta=np.pi / 180, threshold=80,
+                         minLineLength=60, maxLineGap=5)
 print(f"    Hough line segments detected: {0 if lines is None else len(lines)}")
 
 ar_frame = photo_rgb.copy()
@@ -84,12 +87,12 @@ cv2.line(ar_frame, (symmetry_x, 0), (symmetry_x, img_h), (255, 60, 60), 1, cv2.L
 fig, ax = plt.subplots(figsize=(8, 5.3))
 ax.imshow(ar_frame)
 ax.axis('off')
-ax.set_title('Stage 2: AR line overlay (structural edges an AR heritage app\nwould lock onto, plus facade symmetry axis)', fontsize=10, fontweight='bold')
+ax.set_title('Stage 2: AR line overlay (structural edges an AR heritage app\nwould lock onto, plus courtyard symmetry axis)', fontsize=10, fontweight='bold')
 
 label_boxstyle = dict(boxstyle='round,pad=0.3', facecolor='black', alpha=0.65, edgecolor='none')
-ax.annotate('Facade symmetry axis', xy=(symmetry_x, 20), xytext=(symmetry_x + 15, 20),
+ax.annotate('Courtyard symmetry axis', xy=(symmetry_x, 20), xytext=(symmetry_x + 15, 20),
             color='white', fontsize=8, bbox=label_boxstyle)
-ax.annotate('Detected structural edges\n(arches, minarets, dome lines)', xy=(20, img_h - 20),
+ax.annotate('Detected structural edges\n(monk cell walls, courtyard, stupa base)', xy=(20, img_h - 20),
             xytext=(20, img_h - 15), color='white', fontsize=8, bbox=label_boxstyle, va='top')
 
 plt.tight_layout()
@@ -103,17 +106,24 @@ print("    Saved: output/02_ar_line_overlay.png")
 print("\n[3] Capture-to-3D: heuristic monocular depth, back-projected to a colored point cloud")
 
 # Honest, simple heuristic (not a trained depth network like MiDaS).
-# First problem to solve: the sky has no physical surface, so it must be
-# masked out before back-projecting, otherwise it gets treated as a giant
-# distant "wall" and warps the whole point cloud into a curtain shape.
-# Sky mask: bright, low-saturation pixels (measured on this photo: sky
-# averages saturation ~38 and brightness ~210, versus ~113 and ~178 for
-# the building), confirmed by sampling the top and bottom strips directly.
+# First problem to solve: the sky and the hazy distant hills have no
+# reconstructible surface at this resolution, so both must be masked out
+# before back-projecting, otherwise they get treated as physical "walls"
+# and warp the whole point cloud.
+# This photo is different from the previous version's flat blue-sky shot:
+# it is lit at sunset, so the sky actually reads as MORE saturated than
+# the hazy hills below it (measured directly: sky ~74 saturation and
+# ~238 brightness, distant hills ~47 saturation but a similarly high
+# ~238 brightness, foreground ruins ~149 saturation and ~167 brightness).
+# Brightness alone cleanly separates "far background" (sky + haze) from
+# the much darker foreground stonework, so that is the mask used here,
+# re-measured on this photo rather than reusing the previous photo's
+# saturation-based threshold, which does not transfer.
 hsv = cv2.cvtColor(photo_bgr, cv2.COLOR_BGR2HSV)
 saturation = hsv[:, :, 1].astype(np.float32)
 brightness = hsv[:, :, 2].astype(np.float32)
-sky_mask = (saturation < 70) & (brightness > 180)
-print(f"    Sky pixels masked out: {sky_mask.sum()} of {img_h * img_w} ({100 * sky_mask.sum() / (img_h * img_w):.1f}%)")
+sky_mask = brightness > 205
+print(f"    Sky/haze pixels masked out: {sky_mask.sum()} of {img_h * img_w} ({100 * sky_mask.sum() / (img_h * img_w):.1f}%)")
 
 # For the remaining (building/ground) pixels: lower in frame = nearer camera,
 # and locally strong edges are pulled slightly forward, giving domes and

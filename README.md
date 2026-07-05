@@ -174,7 +174,7 @@ Linear regression implemented from scratch with gradient descent and checked aga
 
 Pipeline and write-up: [`ml-viz-ar-capture3d/`](ml-viz-ar-capture3d/)
 
-One real, already-sourced photo (the Badshahi Mosque front facade) run through three stages: Sobel gradient and Harris corner feature detection, an AR-style line overlay simulating what a heritage app would show live on a phone camera, and a heuristic capture-to-3D colored point cloud. The first version of the point cloud stage was broken (the sky got treated as a physical surface and warped the whole projection), caught by actually looking at the output, fixed by masking the sky out using measured saturation/brightness thresholds before back-projecting.
+One real photo of the Jaulian monastery ruins at Taxila run through three stages: Sobel gradient and Harris corner feature detection, an AR-style line overlay simulating what a heritage app would show live on a phone camera, and a heuristic capture-to-3D colored point cloud. Taxila was picked on purpose to tie into the Team Taxila group sprint running in parallel. Two real bugs were caught by actually looking at the rendered output rather than trusting the code ran without errors: the point cloud stage initially treated the sky as a physical surface and warped the whole projection (fixed by measuring this photo's actual sunset-lit sky/haze brightness and masking it out), and the AR line overlay initially produced 271 noisy lines blanketing the frame (fixed by tightening the edge and line-detection thresholds down to 25 clean, meaningful lines).
 
 ---
 
