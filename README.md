@@ -46,6 +46,10 @@ PMW-day1/
 ├── ml-viz-ar-capture3d/
 │   ├── capture_to_3d_pipeline.py      <- ML features, AR lines, capture-to-3D on a real photo
 │   └── output/                        <- 3 generated visualizations
+├── week3-3d-reconstruction/
+│   ├── sfm_feasibility_test.py        <- real ORB+RANSAC test of multi-view SfM viability
+│   ├── build_ply_reconstruction.py    <- exports a real, validated .ply point cloud
+│   └── output/                        <- jaulian_monastery_taxila.ply + verification render
 ├── youthxai_python_colab.ipynb        <- Kaggle Python course applied to 3D reconstruction
 ├── youthxai_linear_regression.ipynb   <- linear regression + Kaggle Intro to ML
 ├── youthxai-regression-output/        <- generated plots from the regression notebook
@@ -175,6 +179,14 @@ Linear regression implemented from scratch with gradient descent and checked aga
 Pipeline and write-up: [`ml-viz-ar-capture3d/`](ml-viz-ar-capture3d/)
 
 One real photo of the Jaulian monastery ruins at Taxila run through three stages: Sobel gradient and Harris corner feature detection, an AR-style line overlay simulating what a heritage app would show live on a phone camera, and a heuristic capture-to-3D colored point cloud. Taxila was picked on purpose to tie into the Team Taxila group sprint running in parallel. Two real bugs were caught by actually looking at the rendered output rather than trusting the code ran without errors: the point cloud stage initially treated the sky as a physical surface and warped the whole projection (fixed by measuring this photo's actual sunset-lit sky/haze brightness and masking it out), and the AR line overlay initially produced 271 noisy lines blanketing the frame (fixed by tightening the edge and line-detection thresholds down to 25 clean, meaningful lines).
+
+---
+
+## Convert Curated Footage to a 3D Reconstruction (.ply)
+
+Write-up: [`week3-3d-reconstruction/`](week3-3d-reconstruction/)
+
+Tested whether real multi-view Structure from Motion (feature matching and triangulation, what COLMAP does) was viable on the 6 already-curated Badshahi Mosque photos before choosing an approach: ORB feature matching and RANSAC geometric verification across 3 photo pairs found only 12 to 17 consistent inliers out of 2000+ keypoints per photo, not enough real overlap for triangulation, since these are photos from different photographers rather than a controlled multi-view capture. Built a monocular reconstruction of the Jaulian monastery ruins instead (extending the approach from `ml-viz-ar-capture3d/`), and exported it as a real `.ply` point cloud file, hand-written against the format spec rather than pulled from a library. Validated three separate ways: manually re-parsed the file to confirm every line is well-formed, reloaded it from disk and re-rendered it to confirm the geometry survives the round trip, and compared it against the earlier module's equivalent visualization.
 
 ---
 
