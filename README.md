@@ -50,6 +50,10 @@ PMW-day1/
 │   ├── sfm_feasibility_test.py        <- real ORB+RANSAC test of multi-view SfM viability
 │   ├── build_ply_reconstruction.py    <- exports a real, validated .ply point cloud
 │   └── output/                        <- jaulian_monastery_taxila.ply + verification render
+├── week3-logistic-regression/
+│   ├── youthxai_logistic_regression.ipynb  <- logistic regression + real Kaggle Titanic pipeline
+│   ├── data/titanic.csv               <- real, verified Titanic training set (891 rows)
+│   └── output/                        <- classifier plot + Kaggle-format submission CSV
 ├── youthxai_python_colab.ipynb        <- Kaggle Python course applied to 3D reconstruction
 ├── youthxai_linear_regression.ipynb   <- linear regression + Kaggle Intro to ML
 ├── youthxai-regression-output/        <- generated plots from the regression notebook
@@ -187,6 +191,14 @@ One real photo of the Jaulian monastery ruins at Taxila run through three stages
 Write-up: [`week3-3d-reconstruction/`](week3-3d-reconstruction/)
 
 Tested whether real multi-view Structure from Motion (feature matching and triangulation, what COLMAP does) was viable on the 6 already-curated Badshahi Mosque photos before choosing an approach: ORB feature matching and RANSAC geometric verification across 3 photo pairs found only 12 to 17 consistent inliers out of 2000+ keypoints per photo, not enough real overlap for triangulation, since these are photos from different photographers rather than a controlled multi-view capture. Built a monocular reconstruction of the Jaulian monastery ruins instead (extending the approach from `ml-viz-ar-capture3d/`), and exported it as a real `.ply` point cloud file, hand-written against the format spec rather than pulled from a library. Validated three separate ways: manually re-parsed the file to confirm every line is well-formed, reloaded it from disk and re-rendered it to confirm the geometry survives the round trip, and compared it against the earlier module's equivalent visualization.
+
+---
+
+## Logistic Regression and Kaggle Titanic
+
+Notebook: [`week3-logistic-regression/`](week3-logistic-regression/)
+
+Logistic regression from scratch, checked against scikit-learn, applied to a genuine reconstruction problem: classifying whether a captured photo is usable, replacing a hand-guessed threshold from an earlier notebook with an actual trained classifier. Followed by the real, public Kaggle Titanic dataset (891 passengers, verified against known statistics before use), cleaned and run through a proper 80/20 train/validation split for an honest accuracy number, then exported as a Kaggle-format submission CSV.
 
 ---
 
