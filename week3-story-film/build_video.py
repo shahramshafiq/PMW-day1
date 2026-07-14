@@ -20,6 +20,7 @@ v2 adds real production value on top of the v1 static-card version:
 
 import os
 import numpy as np
+from scipy.signal import butter, filtfilt
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -304,16 +305,51 @@ def envelope(n, attack, release):
     return env
 
 
-def synth_pad(duration, freqs, sr=SR, vol=0.10):
+def lowpass(x, cutoff_hz, sr=SR, order=2):
+    """Zero-phase Butterworth lowpass, softens harsh high content for a warmer tone."""
+    nyq = sr / 2
+    b, a = butter(order, cutoff_hz / nyq, btype='low')
+    return filtfilt(b, a, x)
+
+
+def add_reverb(x, sr, taps):
+    """Cheap algorithmic reverb: a handful of decaying delayed copies summed back in."""
+    out = x.copy()
+    for delay_sec, gain in taps:
+        d = int(delay_sec * sr)
+        if d >= len(x):
+            continue
+        delayed = np.zeros_like(x)
+        delayed[d:] = x[:-d] * gain
+        out += delayed
+    return out
+
+
+def normalize(x, target_peak=1.0):
+    peak = np.max(np.abs(x))
+    return x / peak * target_peak if peak > 0 else x
+
+
+def synth_pad(duration, freqs, sr=SR, vol=0.09):
+    """Warm ambient pad: chorus-detuned voices, soft octave overtone, gentle tremolo, reverb tail."""
     n = int(duration * sr)
     t = np.linspace(0, duration, n, endpoint=False)
     out = np.zeros(n)
-    for f in freqs:
-        lfo = 1.0 + 0.03 * np.sin(2 * np.pi * 0.07 * t)
-        out += np.sin(2 * np.pi * f * t * lfo)
+    for idx, f in enumerate(freqs):
+        detune = 1.0 + (0.0035 if idx % 2 == 0 else -0.0035)
+        drift_rate = 0.05 + 0.015 * idx
+        vib = 1.0 + 0.006 * np.sin(2 * np.pi * drift_rate * t)
+        voice = np.sin(2 * np.pi * f * t * vib)
+        voice += 0.5 * np.sin(2 * np.pi * f * detune * t * vib)
+        voice += 0.18 * np.sin(2 * np.pi * f * 2 * t * vib)
+        out += voice
     out /= len(freqs)
-    out *= envelope(n, attack=int(1.2 * sr), release=int(1.5 * sr))
-    return out * vol
+    tremolo = 1.0 + 0.05 * np.sin(2 * np.pi * 0.11 * t)
+    out *= tremolo
+    out = lowpass(out, cutoff_hz=900, sr=sr)
+    out = add_reverb(out, sr, taps=[(0.045, 0.30), (0.095, 0.20), (0.16, 0.13)])
+    out *= envelope(n, attack=int(2.5 * sr), release=int(3.0 * sr))
+    return normalize(out) * vol
 
 
 def synth_whoosh(duration=0.5, sr=SR, vol=0.12):
@@ -328,17 +364,21 @@ def synth_whoosh(duration=0.5, sr=SR, vol=0.12):
     return mixed * vol
 
 
-def synth_chime(duration=1.6, sr=SR, vol=0.16):
+def synth_chime(duration=1.8, sr=SR, vol=0.13):
+    """Soft bell-like chime: near-harmonic partials, each with its own decay, reverb tail."""
     n = int(duration * sr)
     t = np.linspace(0, duration, n, endpoint=False)
-    base = 440.0
+    base = 392.0  # G4, sits lower and softer than the old 440Hz version
     out = np.zeros(n)
-    for mult, amp in [(1, 1.0), (2, 0.5), (3, 0.3), (4.2, 0.15)]:
-        out += amp * np.sin(2 * np.pi * base * mult * t)
-    decay = np.exp(-t * 2.2)
-    out *= decay
-    out *= envelope(n, attack=int(0.01 * sr), release=0)
-    return out * vol
+    for ratio, amp, decay_rate in [
+        (1.0, 1.0, 2.2), (2.0, 0.55, 2.6), (3.0, 0.32, 3.4),
+        (4.76, 0.16, 4.6), (6.4, 0.08, 5.5),
+    ]:
+        out += amp * np.sin(2 * np.pi * base * ratio * t) * np.exp(-t * decay_rate)
+    out = lowpass(out, cutoff_hz=3200, sr=sr)
+    out = add_reverb(out, sr, taps=[(0.05, 0.35), (0.11, 0.22), (0.19, 0.14), (0.28, 0.08)])
+    out *= envelope(n, attack=int(0.02 * sr), release=0)
+    return normalize(out) * vol
 
 
 def synth_tension(duration, sr=SR, vol=0.06):
