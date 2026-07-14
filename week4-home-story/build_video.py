@@ -115,7 +115,7 @@ def caption_textfile(lines, path):
 
 
 def build_scene(idx, name, duration, bg_video=None, bg_start=0.0, loop_bg=False,
-                 gradient=None, caption=None, kicker=None, zoom_from=1.0, zoom_to=1.08,
+                 gradient=None, bg_photo=None, caption=None, kicker=None, zoom_from=1.0, zoom_to=1.08,
                  grade=True):
     out_path = os.path.join(SCENES_DIR, f"scene_{idx:02d}_{name}.mp4")
     tmp_dir = os.path.join(SCENES_DIR, f"_tmp_{idx:02d}")
@@ -126,6 +126,11 @@ def build_scene(idx, name, duration, bg_video=None, bg_start=0.0, loop_bg=False,
         make_gradient_bg(bg_png, gradient[0], gradient[1])
         base_cmd = ["ffmpeg", "-y", "-loop", "1", "-t", str(duration), "-i", bg_png]
         vf_pre = "scale=3200:1800,"
+    elif bg_photo is not None:
+        base_cmd = ["ffmpeg", "-y", "-loop", "1", "-t", str(duration), "-i", bg_photo]
+        # real photos vary in aspect ratio, unlike generated gradients, so
+        # fill-crop to 16:9 first instead of a plain scale (which would distort)
+        vf_pre = "scale=3200:1800:force_original_aspect_ratio=increase,crop=3200:1800,"
     else:
         if loop_bg:
             base_cmd = ["ffmpeg", "-y", "-stream_loop", "-1", "-t", str(duration), "-i", bg_video]
@@ -191,28 +196,42 @@ def fade_expr(duration, in_time, out_time=None):
     )
 
 
-def build_title_scene(idx, name, duration, headline, sub):
+def build_title_scene(idx, name, duration, headline, sub, bg_photo=None):
     out_path = os.path.join(SCENES_DIR, f"scene_{idx:02d}_{name}.mp4")
     tmp_dir = os.path.join(SCENES_DIR, f"_tmp_{idx:02d}")
     os.makedirs(tmp_dir, exist_ok=True)
-    bg_png = os.path.join(tmp_dir, "bg.png")
-    make_gradient_bg(bg_png, (24, 17, 15), (58, 32, 20))
     hfile = os.path.join(tmp_dir, "headline.txt")
     sfile = os.path.join(tmp_dir, "sub.txt")
     caption_textfile(wrap_lines(headline, FONT_BOLD, 58, W - 160), hfile)
     caption_textfile(wrap_lines(sub, FONT_REG, 26, W - 160), sfile)
     alpha_expr = fade_expr(duration, 1.0, 0.8)
+
+    if bg_photo is not None:
+        bg_src = bg_photo
+        vf_pre = "scale=3200:1800:force_original_aspect_ratio=increase,crop=3200:1800,"
+        # darken and desaturate the real photo so white text stays legible over it
+        grade = "eq=contrast=1.02:brightness=-0.12:saturation=0.55:gamma=0.92,"
+        box = "box=1:boxcolor=black@0.32:boxborderw=22:"
+    else:
+        bg_png = os.path.join(tmp_dir, "bg.png")
+        make_gradient_bg(bg_png, (24, 17, 15), (58, 32, 20))
+        bg_src = bg_png
+        vf_pre = "scale=3200:1800,"
+        grade = ""
+        box = ""
+
     vf = (
-        "scale=3200:1800,"
+        f"{vf_pre}"
         f"zoompan=z='min(zoom+{0.06 / (duration * FPS):.6f},1.06)':d=1:s=1280x720:fps={FPS},"
+        f"{grade}"
         "vignette=PI/4,noise=alls=5:allf=t+u,"
         f"drawtext=fontfile={_fpath(FONT_BOLD)}:textfile={_fpath(hfile)}:fontcolor={_hex(CREAM)}:fontsize=58:"
-        f"line_spacing=14:x=(w-text_w)/2:y=(h/2)-100:alpha='{alpha_expr}',"
+        f"line_spacing=14:x=(w-text_w)/2:y=(h/2)-100:{box}alpha='{alpha_expr}',"
         f"drawtext=fontfile={_fpath(FONT_REG)}:textfile={_fpath(sfile)}:fontcolor={_hex(RUST)}:fontsize=26:"
-        f"line_spacing=8:x=(w-text_w)/2:y=(h/2)+40:alpha='{alpha_expr}'"
+        f"line_spacing=8:x=(w-text_w)/2:y=(h/2)+40:{box}alpha='{alpha_expr}'"
     )
     cmd = [
-        "ffmpeg", "-y", "-loop", "1", "-t", str(duration), "-i", bg_png,
+        "ffmpeg", "-y", "-loop", "1", "-t", str(duration), "-i", bg_src,
         "-vf", vf, "-r", str(FPS), "-an",
         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "18",
         out_path
@@ -228,29 +247,31 @@ def build_title_scene(idx, name, duration, headline, sub):
 # voice-over recording arrives, see sync_voiceover.py)
 # =====================================================================
 scenes = []
+PHOTOS = os.path.join(SRC, "photos")
 
 scenes.append(build_title_scene(
     0, "title", 2.00,
     "TWENTY GUYS AND A BUS RIDE",
-    "What Home Means to Me  |  Shahram Shafiq"
+    "What Home Means to Me  |  Shahram Shafiq",
+    bg_photo=os.path.join(PHOTOS, "cch_gate.jpg")
 ))
 
 scenes.append(build_scene(
     1, "corridor-a", 8.03,
-    bg_video=os.path.join(SRC, "corridor_hallway.mp4"), bg_start=0.0,
+    bg_photo=os.path.join(PHOTOS, "group_outside_building.jpg"),
     caption="For three years, home wasn't a house. It was a wing, in a hostel, at Cadet College Hasan Abdal.",
     kicker="CADET COLLEGE HASAN ABDAL  ·  2019–2022"
 ))
 
 scenes.append(build_scene(
     2, "corridor-b", 16.92,
-    bg_video=os.path.join(SRC, "corridor_hallway.mp4"), loop_bg=True,
+    bg_photo=os.path.join(PHOTOS, "cch_aerial_wikimedia.jpg"),
     caption="Everything ran on a schedule so tight it should have felt like a punishment. It didn't."
 ))
 
 scenes.append(build_scene(
     3, "basketball-a", 18.94,
-    bg_video=os.path.join(SRC, "basketball_solo.mp4"), loop_bg=True,
+    bg_photo=os.path.join(PHOTOS, "basketball_team.jpg"),
     caption="It felt like the safest routine I've ever lived in. Inside it, I found basketball, and it became mine."
 ))
 
@@ -263,14 +284,15 @@ scenes.append(build_scene(
 
 scenes.append(build_scene(
     5, "bus-b", 14.22,
-    bg_video=os.path.join(SRC, "bus_pov.mp4"), bg_start=8.0,
+    bg_photo=os.path.join(PHOTOS, "friends_hillside.jpg"),
     caption="Cadet College Kallar Kahar felt like a vacation from CCH itself. New campus. New faces. A game to win."
 ))
 
 scenes.append(build_title_scene(
     6, "wing", 17.23,
     "TWENTY GUYS",
-    "My entry mates. My wing mates.\nEvery 5 a.m. wake-up. Every late-night talk after lights out."
+    "My entry mates. My wing mates.\nEvery 5 a.m. wake-up. Every late-night talk after lights out.",
+    bg_photo=os.path.join(PHOTOS, "wing_dorm_trophy.jpg")
 ))
 
 scenes.append(build_scene(
@@ -282,20 +304,21 @@ scenes.append(build_scene(
 
 scenes.append(build_scene(
     8, "corridor-c", 7.62,
-    bg_video=os.path.join(SRC, "corridor_hallway.mp4"), bg_start=1.0,
+    bg_photo=os.path.join(PHOTOS, "wing_dorm_trophy.jpg"),
     caption="It was the right call. But I still measure routine, discipline, and friendship against that wing."
 ))
 
 scenes.append(build_scene(
     9, "basketball-b", 7.24,
-    bg_video=os.path.join(SRC, "basketball_solo.mp4"), loop_bg=True,
+    bg_photo=os.path.join(PHOTOS, "basketball_team.jpg"),
     caption="That's what I miss. Not a building. Twenty guys, a basketball court, and a bus ride to Kallar Kahar."
 ))
 
 scenes.append(build_title_scene(
     10, "end", 6.50,
     "SHAHRAM SHAFIQ",
-    "PreserveMy.World x TechRealm 2026\nIndividual Storytelling: What Home Means to You"
+    "PreserveMy.World x TechRealm 2026\nIndividual Storytelling: What Home Means to You",
+    bg_photo=os.path.join(PHOTOS, "cch_gate.jpg")
 ))
 
 # =====================================================================
