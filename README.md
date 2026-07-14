@@ -54,6 +54,10 @@ PMW-day1/
 │   ├── youthxai_logistic_regression.ipynb  <- logistic regression + real Kaggle Titanic pipeline
 │   ├── data/titanic.csv               <- real, verified Titanic training set (891 rows)
 │   └── output/                        <- classifier plot + Kaggle-format submission CSV
+├── week3-story-film/
+│   ├── script.md                      <- written story and script
+│   ├── build_video.py                 <- builds a real MP4 from real project artifacts
+│   └── output/taxila_preserved_in_3d.mp4  <- the final 71-second video
 ├── youthxai_python_colab.ipynb        <- Kaggle Python course applied to 3D reconstruction
 ├── youthxai_linear_regression.ipynb   <- linear regression + Kaggle Intro to ML
 ├── youthxai-regression-output/        <- generated plots from the regression notebook
@@ -199,6 +203,14 @@ Tested whether real multi-view Structure from Motion (feature matching and trian
 Notebook: [`week3-logistic-regression/`](week3-logistic-regression/)
 
 Logistic regression from scratch, checked against scikit-learn, applied to a genuine reconstruction problem: classifying whether a captured photo is usable, replacing a hand-guessed threshold from an earlier notebook with an actual trained classifier. Followed by the real, public Kaggle Titanic dataset (891 passengers, verified against known statistics before use), cleaned and run through a proper 80/20 train/validation split for an honest accuracy number, then exported as a Kaggle-format submission CSV.
+
+---
+
+## Story, Script, Film and Edit
+
+Write-up: [`week3-story-film/`](week3-story-film/)
+
+An AI-based 3D reconstruction project has no camera and no live-action footage, so this builds the honest equivalent: a real, playable 71-second MP4 assembled from genuine project artifacts (a real photo, real generated visualizations, a real rotating render of the actual `.ply` point cloud), following a proper written script. Two real bugs were caught by checking output instead of trusting a clean exit code: 12 stray duplicate frames from a cleanup bug, and a far more serious one where the entire video played back scrambled out of order, caused by 3-digit zero-padded frame filenames breaking alphabetically once the sequence passed 999 frames. Fixed both, then re-verified by extracting 9 sample frames across the full timeline and confirming each one matches its intended scene, including checking two different timestamps inside the rotation to confirm the point cloud genuinely rotates.
 
 ---
 
