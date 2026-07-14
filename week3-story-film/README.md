@@ -6,31 +6,53 @@
 
 ## What this is
 
-This is an AI-based 3D reconstruction project, there is no camera and no live-action filming here. Rather than fake that, this builds the honest equivalent: a real, playable video file assembled entirely from genuine project artifacts, a real photo, real generated visualizations, and a real rotating render of the actual `.ply` point cloud, following a proper written script.
+This is an AI-based 3D reconstruction project, there is no camera and no live-action filming here. Rather than fake that, this builds the honest equivalent: a real, playable video file assembled entirely from genuine project artifacts, a real photo, real generated visualizations, and a real rotating render of the actual `.ply` point cloud, following a proper written script, with real synthesized audio design and motion, not a plain silent slideshow.
 
 - Script: [`script.md`](script.md)
 - Build script: [`build_video.py`](build_video.py)
-- Final video: [`output/taxila_preserved_in_3d.mp4`](output/taxila_preserved_in_3d.mp4) (71 seconds, 1280x720, h264)
+- Final video: [`output/taxila_preserved_in_3d.mp4`](output/taxila_preserved_in_3d.mp4) (75 seconds, 1280x720, h264 video + aac audio)
 
 ---
 
-## Two real bugs, caught by actually checking, not by trusting the script ran
+## On the voiceover
 
-**Bug 1: an extra 12 frames from leftover source files.** The first render came out 71.5 seconds instead of the intended 71.0. `repeat_frame()` copied a source card image into the numbered sequence but never deleted the original file, so each of the 12 static-card scenes left one stray duplicate frame behind. Fixed by deleting the source file after use, and added an assertion that checks the actual frame count on disk against the expected total before encoding, so this can't silently reappear.
+The team discussed this directly: having only one of three teammates record a voiceover would look uneven when the others didn't, so the team decision was no voiceover, but the video should not be plain or silent either. What's here instead is real production value built without one:
 
-**Bug 2, the more serious one: the whole video was scrambled.** After fixing bug 1, I extracted sample frames at several timestamps to check the content, rather than assuming a passing frame-count check meant the video was correct. It wasn't: scenes were appearing completely out of order. The cause: frame filenames were zero-padded to 3 digits (`:03d`), but the video needed 1704 total frames, past 999. Python's format spec doesn't truncate for larger numbers, so frame 1080 became `"1080_rotate.png"`, not `"080_..."`. Once file names have different lengths, alphabetical sorting stops matching numeric order, `"1080_hold.png"` sorts before `"999_hold.png"` as plain strings, so everything from frame 1000 onward landed in the wrong position. Fixed by padding to 5 digits everywhere, matching the final output naming. Re-verified afterward by extracting 9 frames across the full timeline and confirming each one matches its intended scene exactly, including checking two different timestamps inside the rotation scene to confirm the point cloud is actually rotating, not frozen.
+- **A synthesized ambient pad** running under the whole video (procedurally generated with numpy, a slow three-note minor-key drone with gentle amplitude modulation, not licensed music, not claimed to be)
+- **Whoosh transitions** at every scene change
+- **A reveal chime** at the exact moment the live 3D point cloud first appears, the emotional climax of the video
+- **A low tension rumble** under the UNESCO warning scene
+- **A descending "failure" stinger** at the beat where the video admits multi-view reconstruction didn't work
+- **Ken Burns slow zoom** on every photo and render card instead of a frozen still
+- **Crossfade dissolves** between every scene instead of hard cuts
+- **Fade in/out text** instead of text just appearing and disappearing
 
-This is the reason to actually look at output instead of trusting a script that exits with code 0, a frame-count check alone would not have caught bug 2.
+All of it verified after building, not just assumed to have worked, see below.
+
+---
+
+## Bugs caught by actually checking, not by trusting a clean exit code
+
+**v1, bug 1:** an extra 12 frames from a `repeat_frame()` helper that copied a source card into the sequence but never deleted the original, adding 0.5s of drift. Fixed by deleting the source after use and adding an assertion that checks the actual frame count on disk against the expected total.
+
+**v1, bug 2, the serious one:** the entire video played back scrambled, completely out of scene order. Cause: frame filenames zero-padded to 3 digits, but the sequence needed 1704 frames, past 999. Python's format spec doesn't truncate for larger numbers, so frame 1080 became `"1080_..."` rather than `"080_..."`, and once filename lengths differ, alphabetical sort stops matching numeric order. Fixed by padding to 5 digits everywhere. Verified by extracting 9 frames across the timeline and confirming each matched its intended scene, including two different timestamps inside the rotation to confirm real rotation.
+
+**v2 (this version), re-verified from scratch since the frame-building logic changed substantially:**
+- Extracted 9 frames at the recalculated scene timestamps (crossfades shift every scene's start time) and confirmed every one is in the correct order again.
+- Confirmed the rotation is still genuinely animating (two different timestamps show different angles).
+- Ran `ffprobe` to confirm both a video stream (h264) and an audio stream (aac, 44.1kHz) are actually present and the container plays as a real 75.0-second file.
+- Ran `ffmpeg silencedetect` on the audio: zero silent gaps found, the ambient bed is genuinely continuous.
+- Ran `ffmpeg volumedetect` on the audio: max level -10 dB (headroom, no clipping), and confirmed real dynamic variation by comparing the reveal-chime moment (mean -24.3 dB) against a quiet text-only scene (mean -28.7 dB), so the audio design is actually doing something, not a flat unchanging tone.
 
 ---
 
 ## Facts used in the script
 
-- Taxila (Takshashila) dates to roughly 600 BCE, predating Oxford (1096 CE) by about 1,700 years and predating Nalanda, independently verified before writing the script, not assumed from an earlier page's summary.
+- Taxila (Takshashila) dates to roughly 600 BCE, predating Oxford (1096 CE) by about 1,700 years and predating Nalanda, independently verified before writing the script.
 - The 2026 UNESCO cement-restoration warning and the 12-17 SfM inlier count are both already verified and documented elsewhere in this repo (`ml-viz-ar-capture3d/`, `week3-3d-reconstruction/`).
 
 ---
 
 ## Note on `frames/`
 
-The `frames/` folder is regenerated by `build_video.py` (1704 PNG frames, about 330 MB) and is gitignored, it is a build artifact, not part of the deliverable. Run the script to regenerate it if needed; the final video in `output/` is the actual submission.
+The `frames/` folder is regenerated by `build_video.py` (1800 PNG frames, roughly 350 MB) and is gitignored, it is a build artifact, not part of the deliverable. Run the script to regenerate it if needed; the final video in `output/` is the actual submission.
