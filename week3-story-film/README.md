@@ -20,7 +20,7 @@ The team discussed this directly: having only one of three teammates record a vo
 
 - **A synthesized ambient pad** running under the whole video (procedurally generated with numpy, a slow three-note minor-key drone, each note chorus-detuned across two voices plus a soft octave overtone, filtered through a Butterworth lowpass for warmth, a touch of algorithmic reverb, and gentle tremolo, not licensed music, not claimed to be)
 - **Whoosh transitions** at every scene change
-- **A reveal chime** at the exact moment the live 3D point cloud first appears, the emotional climax of the video (near-harmonic bell partials with independent decay rates, lowpass filtered and reverbed for a soft tone instead of a harsh buzz)
+- **A brighter pad layer** under the live 3D reveal, the emotional climax of the video, instead of a separate chime
 - **A low tension rumble** under the UNESCO warning scene
 - **A descending "failure" stinger** at the beat where the video admits multi-view reconstruction didn't work
 - **Ken Burns slow zoom** on every photo and render card instead of a frozen still
@@ -44,11 +44,17 @@ All of it verified after building, not just assumed to have worked, see below.
 - Ran `ffmpeg silencedetect` on the audio: zero silent gaps found, the ambient bed is genuinely continuous.
 - Ran `ffmpeg volumedetect` on the audio: max level -10 dB (headroom, no clipping), and confirmed real dynamic variation by comparing the reveal-chime moment (mean -24.3 dB) against a quiet text-only scene (mean -28.7 dB), so the audio design is actually doing something, not a flat unchanging tone.
 
-**v3 (this version): reworked the ambient pad and chime, both sounded thin and harsh in v2.** Rebuilt both with chorus-detuned voices, a soft octave overtone, a Butterworth lowpass filter to cut harsh high content, a small algorithmic reverb tail (a few decaying delayed copies summed back in), and gentle tremolo on the pad. Frame generation and scene timing are untouched (still exactly 1800 frames, 75.00s), so only the audio needed re-checking:
+**v3: reworked the ambient pad and chime, both sounded thin and harsh in v2.** Rebuilt both with chorus-detuned voices, a soft octave overtone, a Butterworth lowpass filter to cut harsh high content, a small algorithmic reverb tail (a few decaying delayed copies summed back in), and gentle tremolo on the pad. Frame generation and scene timing are untouched (still exactly 1800 frames, 75.00s), so only the audio needed re-checking:
 - `ffprobe` confirms both streams intact, 75.0s container.
 - `ffmpeg silencedetect` found zero silent gaps.
 - `ffmpeg volumedetect` on the full track: mean -30.7 dB, max -12.1 dB, no clipping.
 - Plotted a full 1-second-window RMS loudness profile across all 75 seconds (not just two spot checks) using numpy directly on the raw samples: loudness genuinely swings between roughly -22 dB (chime and transition moments) and -40 dB (quiet stretches) throughout the track, confirmed against the actual sample data, not assumed from the code.
+
+**v4 (this version): removed the chime entirely, it still sounded bad even after the v3 rework.** The reveal moment now runs on a brighter layer of the same ambient pad instead of a separate synthesized chime, and the title-card chime is gone too. Re-verified again since this changes the audio, not the frames:
+- `ffprobe` confirms both streams intact, 75.0s container, unchanged frame count and timing.
+- `ffmpeg silencedetect` found zero silent gaps.
+- `ffmpeg volumedetect` on the full track: mean -30.8 dB, max -11.9 dB, no clipping.
+- Full 1-second-window RMS loudness plot across all 75 seconds: genuine 25 dB dynamic range (roughly -22 dB at transition moments down to -47 dB in quiet stretches), so the track still moves, it is not flat, just without the chime.
 
 ---
 

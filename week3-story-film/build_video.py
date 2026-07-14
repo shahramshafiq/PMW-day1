@@ -364,23 +364,6 @@ def synth_whoosh(duration=0.5, sr=SR, vol=0.12):
     return mixed * vol
 
 
-def synth_chime(duration=1.8, sr=SR, vol=0.13):
-    """Soft bell-like chime: near-harmonic partials, each with its own decay, reverb tail."""
-    n = int(duration * sr)
-    t = np.linspace(0, duration, n, endpoint=False)
-    base = 392.0  # G4, sits lower and softer than the old 440Hz version
-    out = np.zeros(n)
-    for ratio, amp, decay_rate in [
-        (1.0, 1.0, 2.2), (2.0, 0.55, 2.6), (3.0, 0.32, 3.4),
-        (4.76, 0.16, 4.6), (6.4, 0.08, 5.5),
-    ]:
-        out += amp * np.sin(2 * np.pi * base * ratio * t) * np.exp(-t * decay_rate)
-    out = lowpass(out, cutoff_hz=3200, sr=sr)
-    out = add_reverb(out, sr, taps=[(0.05, 0.35), (0.11, 0.22), (0.19, 0.14), (0.28, 0.08)])
-    out *= envelope(n, attack=int(0.02 * sr), release=0)
-    return normalize(out) * vol
-
-
 def synth_tension(duration, sr=SR, vol=0.06):
     n = int(duration * sr)
     t = np.linspace(0, duration, n, endpoint=False)
@@ -515,9 +498,6 @@ master = np.zeros(int(duration_sec * SR) + SR)  # a little headroom at the end
 pad = synth_pad(duration_sec, freqs=[110.0, 130.81, 164.81], vol=0.09)  # A minor-ish triad, low
 mix_in(master, pad, 0)
 
-# soft chime under the title
-mix_in(master, synth_chime(1.2, vol=0.10), int(0.3 * SR))
-
 # whoosh at every scene transition
 for name, start in scene_start_frame.items():
     if name == "title":
@@ -533,9 +513,8 @@ mix_in(master, synth_tension(5.0, vol=0.05), int(unesco_start * SR))
 sfmfail_start = scene_start_frame["sfmfail"] / FPS
 mix_in(master, synth_stinger_down(0.9, vol=0.13), int(sfmfail_start * SR))
 
-# the big reveal chime right as the rotation climax begins
+# a brighter pad layer under the rotation climax, no chime
 rotation_start = scene_start_frame["rotation"] / FPS
-mix_in(master, synth_chime(2.0, vol=0.15), int(rotation_start * SR))
 mix_in(master, synth_pad(FPS * 12 / FPS, freqs=[164.81, 196.0, 220.0], vol=0.07), int(rotation_start * SR))
 
 wav_path = os.path.join(OUT_DIR, "audio_track.wav")
