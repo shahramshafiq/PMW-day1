@@ -357,11 +357,18 @@ if voice_duration > total_video_duration + 0.5:
     raise SystemExit(1)
 target_dur = total_video_duration
 fade_out_start = max(0, target_dur - 2.5)
+# Voice is a quiet phone recording (mean ~-28.6dB), so it's boosted and
+# gently compressed BEFORE mixing, the music bed is dropped to a low base
+# level, and sidechain ducking on top of that pushes it down further while
+# Shahram is talking. Explicit asplit avoids any ambiguity about reusing
+# the voice stream as both the sidechain key and the thing being mixed in.
 filter_complex_audio = (
-    f"[0:a]atrim=0:{target_dur},afade=t=in:st=0:d=1.5,afade=t=out:st={fade_out_start:.2f}:d=2.5,volume=0.45[music];"
-    f"[1:a]apad=whole_dur={target_dur}[voice];"
-    f"[music][voice]sidechaincompress=threshold=0.04:ratio=9:attack=40:release=450:makeup=1.15[ducked];"
-    f"[ducked][voice]amix=inputs=2:duration=first:weights='1 1.4':normalize=0[premix];"
+    f"[0:a]atrim=0:{target_dur},afade=t=in:st=0:d=1.5,afade=t=out:st={fade_out_start:.2f}:d=2.5,volume=0.20[music];"
+    f"[1:a]atrim=0:{target_dur},apad=whole_dur={target_dur},"
+    f"volume=2.6,acompressor=threshold=0.12:ratio=3:attack=10:release=200:makeup=1.15[voiceboost];"
+    f"[voiceboost]asplit=2[voice_key][voice_mix];"
+    f"[music][voice_key]sidechaincompress=threshold=0.015:ratio=15:attack=20:release=600:makeup=1[ducked];"
+    f"[ducked][voice_mix]amix=inputs=2:duration=first:weights='0.6 3.0':normalize=0[premix];"
     f"[premix]alimiter=limit=0.85:attack=5:release=50:level=disabled[mixed]"
 )
 cmd = [
@@ -372,7 +379,7 @@ cmd = [
     mixed_audio
 ]
 run(cmd)
-print(f"Saved mixed audio (voice + ducked score): {mixed_audio}")
+print(f"Saved mixed audio (voice-forward mix, ducked score): {mixed_audio}")
 
 # =====================================================================
 # FINAL MUX
@@ -380,6 +387,7 @@ print(f"Saved mixed audio (voice + ducked score): {mixed_audio}")
 final_out = os.path.join(OUT, "twenty_guys_and_a_bus_ride.mp4")
 cmd = [
     "ffmpeg", "-y", "-i", concat_out, "-i", mixed_audio,
+    "-map", "0:v", "-map", "1:a",
     "-c:v", "copy", "-c:a", "copy", "-shortest",
     final_out
 ]
