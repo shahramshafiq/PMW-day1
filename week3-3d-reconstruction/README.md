@@ -42,6 +42,8 @@ The PLY writer was built by hand against the format spec (ASCII header declaring
 
 **Honest limitations, same as documented before:** this is a monocular heuristic depth estimate, not a trained network like MiDaS and not real multi-view triangulation. The bowl-like shape is the geometrically correct outcome for this specific elevated, downward-looking camera angle into a ring of walls, not an artifact.
 
+**Why the SfM test actually got only 12-17 matches, backed by a real source:** [`research/source_log_3d_methods.md`](../research/source_log_3d_methods.md) (Extension Sprint 2) traces this back to a cited heritage-photogrammetry source: reliable multi-view reconstruction needs roughly 66% overlap between consecutive photos and 10-15 degree spacing around the subject. The 6 available photos were taken by different photographers with no overlap plan, so the weak match count isn't a bug, it's the documented, expected outcome of feeding an SfM pipeline photos that never met its coverage requirement.
+
 ---
 
 ## 3. Export a .ply file

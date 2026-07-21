@@ -131,3 +131,5 @@ PreserveMy.World needs to turn raw phone footage of heritage sites into navigabl
 - Depth Anything v2: github.com/DepthAnything/Depth-Anything-V2
 - Computerphile "How does 3D Scanning Work?" (YouTube)
 - Computerphile "Neural Radiance Fields" (YouTube)
+
+These were an unannotated link list written from general knowledge on Day 2. [`research/source_log_3d_methods.md`](source_log_3d_methods.md) (Extension Sprint 2) replaces the 4 core ones with properly cited, credibility-checked sources, each with a live-verified link and 2-3 sentences on what it actually says, plus a fifth heritage-photogrammetry-specific source that explains exactly why the Week 3 SfM test only found 12-17 verified matches per photo pair.
